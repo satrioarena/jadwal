@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal GOR SATRIO ARENA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['Courier New', 'Courier', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        html, body {
+            height: 100vh;
+            background-color: #020617;
+            overflow: hidden; 
+            margin: 0;
+            padding: 0;
+        }
+        @media (max-width: 768px) {
+            html, body {
+                height: auto !important;
+                overflow-y: auto !important;
+            }
+        }
+        .admin-editable:hover {
+            outline: 2px dashed #38bdf8;
+            cursor: pointer;
+            background-color: rgba(56, 189, 248, 0.1) !important;
+        }
+        .time-col-mono {
+            font-family: 'Courier New', Courier, monospace;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.5px;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .marquee-container {
+            overflow: hidden;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+        }
+        .marquee-text {
+            display: inline-block;
+            animation: marquee 22s linear infinite;
+        }
+        #ad-banner-img { transition: opacity 0.5s ease-in-out; }
+        .fade-out { opacity: 0; }
+        .fade-in { opacity: 1; }
+
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                overflow: auto !important;
+            }
+            header, .bg-slate-900, main, footer, .fixed {
+                display: none !important;
+            }
+            #print-area {
+                display: block !important;
+                position: static !important;
+                width: 100% !important;
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-100 font-sans flex flex-col justify-between selection:bg-sky-500 selection:text-white h-screen">
+
+    <header class="bg-slate-900/90 border-b border-slate-800 px-6 py-2 flex items-center justify-between backdrop-blur-md shrink-0 gap-3">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-slate-900 rounded-xl border border-slate-700 flex items-center justify-center overflow-hidden shrink-0 shadow-lg">
+                <img src="https://i.imgur.com/UYt5gt6.png" alt="Logo Satrio Arena" class="w-full h-full object-cover">
+            </div>
+            <div class="flex items-center space-x-2.5 whitespace-nowrap">
+                <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white">SATRIO ARENA</h1>
+                <span id="mode-badge" class="text-[10px] uppercase px-2.5 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-full font-semibold">Display On</span>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <div class="text-right hidden sm:block">
+                <div id="live-clock" class="text-base font-black text-sky-400 tracking-wider font-mono">00:00:00</div>
+                <div id="live-date" class="text-[10px] text-slate-400 font-medium">Senin, 12 Oktober 2026</div>
+            </div>
+            <button onclick="toggleAutoRotate()" id="btn-autorotate" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-play text-emerald-400" id="autorotate-icon"></i> <span id="autorotate-text" class="hidden sm:inline">Slideshow: Mati</span>
+            </button>
+            <div id="admin-controls" class="flex items-center space-x-2">
+                <button onclick="toggleAdminMode()" id="btn-mode-toggle" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 flex items-center gap-1.5 shadow">
+                    <i class="fa-solid fa-lock text-sky-400" id="mode-icon"></i> <span id="mode-text">Admin Mode</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="bg-slate-900/60 px-6 py-1.5 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <div class="flex items-center space-x-1.5 overflow-x-auto no-scrollbar w-full py-0.5" id="day-tabs-container"></div>
+        <div class="hidden md:flex items-center space-x-4 text-xs text-slate-400 shrink-0">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-500 border border-slate-700"></span> N/A</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500/20 border border-emerald-500"></span> Kosong</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-500/20 border border-sky-500"></span> Member</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500/20 border border-rose-500"></span> Reguler</span>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 px-4 sm:px-6 py-2 max-w-full mx-auto flex flex-col w-full overflow-hidden">
+        <div class="bg-slate-900 rounded-xl border border-slate-800 shadow-2xl flex-1 flex flex-col overflow-hidden">
+            <div class="px-4 py-2 bg-slate-800/40 border-b border-slate-800 flex flex-wrap justify-between items-center gap-2 shrink-0">
+                <h3 id="current-day-title" class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-calendar text-sky-400"></i> Jadwal Harian
+                </h3>
+                <div id="day-summary-badges" class="flex items-center gap-2 text-[11px] font-semibold"></div>
+                <span id="rotate-status-badge" class="hidden text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-full animate-pulse">
+                    <i class="fa-solid fa-rotate mr-1"></i> Auto-Play Aktif (10s)
+                </span>
+            </div>
+            
+            <!-- LAYOUT 3 KOLOM -->
+            <div class="p-3 overflow-y-auto md:overflow-hidden flex-1 flex flex-col md:flex-row gap-2 items-stretch h-full w-full">
+                
+                <!-- KOLOM 1 -->
+                <div class="flex-1 overflow-x-hidden bg-slate-950/50 rounded-xl border border-slate-800 flex flex-col">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-800 text-slate-300 text-[10px] uppercase tracking-wider border-b border-slate-700">
+                                <th class="py-1.5 px-1.5 w-[75px] font-bold">Waktu</th>
+                                <th class="py-1.5 px-1.5 font-bold text-sky-400">Lap 1</th>
+                                <th class="py-1.5 px-1.5 font-bold text-sky-400">Lap 2</th>
+                                <th class="py-1.5 px-1.5 font-bold text-sky-400">Lap 3</th>
+                            </tr>
+                        </thead>
+                        <tbody id="daily-table-body-1" class="divide-y divide-slate-800/60 text-[11px]"></tbody>
+                    </table>
+                </div>
+
+                <!-- KOLOM 2 -->
+                <div class="flex-1 overflow-x-hidden bg-slate-950/50 rounded-xl border border-slate-800 flex flex-col">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-800 text-slate-300 text-[10px] uppercase tracking-wider border-b border-slate-700">
+                                <th class="py-1.5 px-1.5 w-[75px] font-bold">Waktu</th>
+                                <th class="py-1.5 px-1.5 font-bold text-sky-400">Lap 1</th>
+                                <th class="py-1.5 px-1.5 font-bold text-sky-400">Lap 2</th>
+                                <th class="py-1.5 px-1.5 font-bold text-sky-400">Lap 3</th>
+                            </tr>
+                        </thead>
+                        <tbody id="daily-table-body-2" class="divide-y divide-slate-800/60 text-[11px]"></tbody>
+                    </table>
+                </div>
+
+                <!-- KOLOM 3 -->
+                <div class="w-full md:w-[25%] lg:w-[23%] bg-slate-950/90 rounded-xl border border-slate-800 p-2 relative shadow-lg flex items-center justify-center shrink-0 min-h-[300px] md:min-h-0">
+                    <span class="absolute top-3 right-4 text-[9px] text-slate-400 font-bold tracking-widest uppercase z-10 bg-slate-900/90 px-2 py-0.5 rounded border border-slate-800">Sponsor</span>
+                    <img id="ad-banner-img" src="https://i.imgur.com/8QzX88n.jpg" alt="Poster Sponsor" class="w-full h-full object-contain rounded-lg shadow">
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-slate-900 border-t border-slate-800 px-6 py-2 flex flex-col md:flex-row items-center justify-between text-xs text-slate-400 shrink-0 gap-2">
+        <div class="flex flex-col sm:flex-row items-center sm:space-x-6 gap-1 text-center sm:text-left shrink-0">
+            <span><i class="fa-solid fa-phone text-sky-400 mr-1.5"></i> Info & Booking: <b>Memo : 0813-1020-4112</b> | <b>Bheghe : 0857-7749-9997</b> | <b>Admin : 0857-6271-8949</b></span>
+            <span class="hidden lg:inline"><i class="fa-solid fa-location-dot text-sky-400 mr-1.5"></i> GOR SATRIO ARENA</span>
+        </div>
+        <div class="marquee-container flex-1 max-w-xl mx-4 overflow-hidden text-sky-400 font-extrabold text-sm sm:text-base italic tracking-wide">
+            <div class="marquee-text" id="footer-hint">
+                <i class="fa-solid fa-quote-left mr-2"></i> BIARKAN PROSES YANG BEKERJA HASIL YANG BERBICARA <i class="fa-solid fa-quote-right ml-2"></i>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Passcode Modal -->
+    <div id="passcode-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xs p-5 shadow-2xl space-y-3 text-center">
+            <div class="bg-sky-500/15 w-10 h-10 rounded-full flex items-center justify-center mx-auto text-sky-400">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h3 class="font-bold text-sm text-white">PIN Admin</h3>
+            <p class="text-[11px] text-slate-400">Masukkan PIN khusus Admin</p>
+            <input type="password" id="admin-pin-input" maxlength="4" placeholder="••••" class="w-full text-center tracking-widest text-xl bg-slate-950 border border-slate-700 rounded-lg py-2 text-white focus:border-sky-500 focus:outline-none font-bold">
+            <div id="pin-error" class="text-[11px] text-rose-400 hidden">PIN Salah!</div>
+            <div class="flex gap-2 pt-1">
+                <button onclick="closePasscodeModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-xs font-semibold">Batal</button>
+                <button onclick="verifyAdminPin()" class="flex-1 bg-sky-500 hover:bg-sky-400 text-slate-950 py-2 rounded-lg text-xs font-bold shadow">Masuk</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal Slot -->
+    <div id="edit-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-5 shadow-2xl space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-sky-400"></i> Edit Slot Booking
+                </h3>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-2.5 text-xs">
+                <div>
+                    <label class="block text-slate-400 mb-1">Hari & Waktu</label>
+                    <input type="text" id="modal-info" readonly class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-300 font-semibold focus:outline-none font-mono">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Lapangan</label>
+                    <input type="text" id="modal-court" readonly class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-300 font-semibold focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Nama Pembooking / Klub (Ketik "REG: Nama" untuk Reguler)</label>
+                    <input type="text" id="modal-input-name" placeholder="Contoh: Pak Fiqih atau REG: Budi" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-sky-500 focus:outline-none font-medium text-sm">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button onclick="setModalValue('Kosong')" class="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 py-2 rounded-lg font-semibold transition">
+                        Set Kosong
+                    </button>
+                    <button onclick="saveSlotEdit()" class="flex-1 bg-sky-500 hover:bg-sky-400 text-slate-950 py-2 rounded-lg font-bold transition shadow">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Settings Modal (Kelola Poster) -->
+    <div id="admin-settings-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-images text-sky-400"></i> Kelola Link Poster / Gambar Iklan
+                </h3>
+                <button onclick="closeAdminSettingsModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Link URL Poster (Pisahkan dengan koma , jika lebih dari 1 gambar)</label>
+                    <textarea id="admin-ads-input" rows="4" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:border-sky-500 focus:outline-none font-mono text-[11px]" placeholder="https://...jpg, https://...jpg"></textarea>
+                </div>
+                <div class="flex gap-2 pt-2 border-t border-slate-800">
+                    <button onclick="resetToDefault()" class="bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 px-3 py-2 rounded-lg font-semibold transition">
+                        Reset Jadwal Default
+                    </button>
+                    <button onclick="saveAdminSettings()" class="flex-1 bg-sky-500 hover:bg-sky-400 text-slate-950 py-2 rounded-lg font-bold transition shadow">
+                        Simpan & Update Poster
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL BARU: Kelola Master Member & Expired Date -->
+    <div id="member-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-5 shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2 shrink-0">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-users text-sky-400"></i> Kelola Master Member & Masa Aktif
+                </h3>
+                <button onclick="closeMemberModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <!-- Form Input Member -->
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2.5 text-xs shrink-0">
+                <div class="font-semibold text-sky-400">Tambah / Perbarui Member</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-slate-400 mb-1">Nama Member / Klub</label>
+                        <input type="text" id="member-name-input" placeholder="Contoh: Pak Fiqih" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-sky-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1">Tanggal Habis Masa Aktif</label>
+                        <input type="date" id="member-expiry-input" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-sky-500 focus:outline-none">
+                    </div>
+                </div>
+                <button onclick="saveMember()" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold py-1.5 rounded-lg transition">
+                    Simpan Member
+                </button>
+            </div>
+
+            <!-- List Daftar Member -->
+            <div class="flex-1 overflow-y-auto space-y-1.5 text-xs pr-1">
+                <div class="font-semibold text-slate-400 mb-2">Daftar Member Terdaftar:</div>
+                <div id="member-list-container" class="space-y-1.5"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzEM-ExZ6GjgD2C_9Rl7CA-iIxxAjOAG6E5BYt1_C9_xtYz6ilKyZZstrB7cgiyXurteA/exec";
+        const LOCAL_STORAGE_KEY = "satrio_arena_local_v15_3cols";
+
+        const emptyDayTemplate = [
+            { time: "06:00 - 07:00", l1: "Not Available", l2: "Not Available", l3: "Not Available" },
+            { time: "07:00 - 08:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "08:00 - 09:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "09:00 - 10:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "10:00 - 11:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "11:00 - 12:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "12:00 - 13:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "13:00 - 14:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "14:00 - 15:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "15:00 - 16:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "16:00 - 17:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "17:00 - 18:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "18:00 - 19:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "19:00 - 20:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "20:00 - 21:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "21:00 - 22:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "22:00 - 23:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "23:00 - 24:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" }
+        ];
+
+        const defaultSchedule = {
+            "Senin": JSON.parse(JSON.stringify(emptyDayTemplate)),
+            "Selasa": JSON.parse(JSON.stringify(emptyDayTemplate)),
+            "Rabu": JSON.parse(JSON.stringify(emptyDayTemplate)),
+            "Kamis": JSON.parse(JSON.stringify(emptyDayTemplate)),
+            "Jumat": JSON.parse(JSON.stringify(emptyDayTemplate)),
+            "Sabtu": JSON.parse(JSON.stringify(emptyDayTemplate)),
+            "Minggu": JSON.parse(JSON.stringify(emptyDayTemplate))
+        };
+
+        let dbRecord = {
+            schedule: JSON.parse(JSON.stringify(defaultSchedule)),
+            ads: ["https://i.imgur.com/8QzX88n.jpg"],
+            members: [] // Menyimpan data master member
+        };
+
+        let currentDay = "Senin";
+        let isAdminMode = false;
+        let isAutoRotateActive = false;
+        let autoRotateInterval = null;
+        let adRotateInterval = null;
+        let currentAdIndex = 0;
+        let editSlotIndex = null;
+        let editCourtKey = null;
+        const dayOrder = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+
+        function safeParseJSON(input) {
+            if (!input) return null;
+            if (typeof input === 'object') return input;
+            try {
+                let parsed = JSON.parse(input);
+                if (typeof parsed === 'string') {
+                    parsed = JSON.parse(parsed);
+                }
+                return parsed;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('live-clock').innerText = now.toLocaleTimeString('id-ID');
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('live-date').innerText = now.toLocaleDateString('id-ID', options);
+        }
+        setInterval(updateClock, 1000);
+
+        function renderDayTabs() {
+            const container = document.getElementById('day-tabs-container');
+            container.innerHTML = '';
+            dayOrder.forEach(day => {
+                const isActive = day === currentDay;
+                const btn = document.createElement('button');
+                btn.className = `px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all shrink-0 ${
+                    isActive 
+                        ? 'bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20 scale-105' 
+                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                }`;
+                btn.innerHTML = `<i class="fa-regular fa-calendar mr-1"></i> ${day}`;
+                btn.onclick = () => {
+                    if (isAutoRotateActive) toggleAutoRotate();
+                    currentDay = day;
+                    renderDailyTable();
+                    renderDayTabs();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function renderDailyTable() {
+            document.getElementById('current-day-title').innerHTML = `<i class="fa-solid fa-calendar text-sky-400"></i> Jadwal Harian: ${currentDay}`;
+            
+            const tbody1 = document.getElementById('daily-table-body-1');
+            const tbody2 = document.getElementById('daily-table-body-2');
+            tbody1.innerHTML = '';
+            tbody2.innerHTML = '';
+            
+            let slots = (dbRecord.schedule && dbRecord.schedule[currentDay]) ? dbRecord.schedule[currentDay] : emptyDayTemplate;
+            let countKosong = 0, countMember = 0, countReguler = 0;
+
+            slots.forEach((slot, index) => {
+                ['l1', 'l2', 'l3'].forEach(court => {
+                    let val = slot[court];
+                    if (val === "Kosong" || !val) countKosong++;
+                    else if (val === "Not Available") {}
+                    else if (val.toUpperCase().startsWith("REG:") || val.toUpperCase().includes("REGULER")) countReguler++;
+                    else countMember++;
+                });
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-1 px-1 font-semibold text-slate-300 border-b border-slate-800/60 flex items-center gap-1 time-col-mono whitespace-nowrap">
+                        <i class="fa-regular fa-clock text-sky-400 text-[9px]"></i> ${slot.time}
+                    </td>
+                    <td class="py-1 px-1 border-b border-slate-800/60 whitespace-nowrap ${isAdminMode ? 'admin-editable' : ''}" ${isAdminMode ? `onclick="openEditModal(${index}, 'l1')"` : ''}>
+                        ${formatCell(slot.l1)}
+                    </td>
+                    <td class="py-1 px-1 border-b border-slate-800/60 whitespace-nowrap ${isAdminMode ? 'admin-editable' : ''}" ${isAdminMode ? `onclick="openEditModal(${index}, 'l2')"` : ''}>
+                        ${formatCell(slot.l2)}
+                    </td>
+                    <td class="py-1 px-1 border-b border-slate-800/60 whitespace-nowrap ${isAdminMode ? 'admin-editable' : ''}" ${isAdminMode ? `onclick="openEditModal(${index}, 'l3')"` : ''}>
+                        ${formatCell(slot.l3)}
+                    </td>
+                `;
+                
+                if (index < 9) tbody1.appendChild(tr); 
+                else tbody2.appendChild(tr); 
+            });
+
+            document.getElementById('day-summary-badges').innerHTML = `
+                <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 whitespace-nowrap">Kosong: <b>${countKosong}</b></span>
+                <span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 whitespace-nowrap">Member: <b>${countMember}</b></span>
+                <span class="px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 whitespace-nowrap">Reguler: <b>${countReguler}</b></span>
+            `;
+        }
+
+        // Format Sel dengan deteksi otomatis Expired Date Member
+        function formatCell(val) {
+            if (val === "Not Available") {
+                return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800/80 text-slate-500 border border-slate-700 whitespace-nowrap"><span class="w-1 h-1 rounded-full bg-slate-600 mr-1 shrink-0"></span> N/A</span>`;
+            } else if (val === "Kosong" || !val) {
+                return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 whitespace-nowrap"><span class="w-1 h-1 rounded-full bg-emerald-500 mr-1 shrink-0"></span> Kosong</span>`;
+            } else if (val.toUpperCase().startsWith("REG:") || val.toUpperCase().includes("REGULER")) {
+                let cleanVal = val.replace(/^REG:\s*/i, '').trim();
+                return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20 whitespace-nowrap"><span class="w-1 h-1 rounded-full bg-rose-500 mr-1 shrink-0"></span> ${cleanVal}</span>`;
+            } else {
+                // Cari apakah nama ini terdaftar di Master Member
+                let matchedMember = (dbRecord.members || []).find(m => m.name.toLowerCase().trim() === val.toLowerCase().trim());
+                let expiryBadge = "";
+                
+                if (matchedMember && matchedMember.expiry) {
+                    let expDate = new Date(matchedMember.expiry);
+                    let formattedDate = isNaN(expDate) ? matchedMember.expiry : expDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                    expiryBadge = `<div class="text-[8px] text-slate-400 font-normal leading-tight mt-0.5">s/d ${formattedDate}</div>`;
+                }
+
+                return `<div class="inline-flex flex-col items-start px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 max-w-full overflow-hidden">
+                    <span class="text-[10px] font-bold whitespace-nowrap flex items-center"><span class="w-1 h-1 rounded-full bg-sky-500 mr-1 shrink-0"></span> ${val}</span>
+                    ${expiryBadge}
+                </div>`;
+            }
+        }
+
+        function updateAdBanner() {
+            const imgEl = document.getElementById('ad-banner-img');
+            if (!imgEl) return;
+            if (dbRecord.ads && dbRecord.ads.length > 0) {
+                imgEl.src = dbRecord.ads[currentAdIndex % dbRecord.ads.length];
+            }
+        }
+
+        function rotateAdBanner() {
+            if (!dbRecord.ads || dbRecord.ads.length <= 1) return;
+            const imgEl = document.getElementById('ad-banner-img');
+            if (!imgEl) return;
+
+            imgEl.classList.add('fade-out');
+            setTimeout(() => {
+                currentAdIndex = (currentAdIndex + 1) % dbRecord.ads.length;
+                imgEl.src = dbRecord.ads[currentAdIndex];
+                imgEl.classList.remove('fade-out');
+                imgEl.classList.add('fade-in');
+                setTimeout(() => imgEl.classList.remove('fade-in'), 500);
+            }, 500);
+        }
+
+        function toggleAutoRotate() {
+            const iconEl = document.getElementById('autorotate-icon');
+            const textEl = document.getElementById('autorotate-text');
+            const btnEl = document.getElementById('btn-autorotate');
+            const badgeEl = document.getElementById('rotate-status-badge');
+
+            if (isAutoRotateActive) {
+                clearInterval(autoRotateInterval);
+                clearInterval(adRotateInterval);
+                autoRotateInterval = null;
+                adRotateInterval = null;
+                isAutoRotateActive = false;
+
+                if (iconEl) iconEl.className = "fa-solid fa-play text-emerald-400";
+                if (textEl) textEl.innerText = "Slideshow: Mati";
+                if (btnEl) btnEl.className = "px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 flex items-center gap-1.5 shadow";
+                if (badgeEl) badgeEl.classList.add('hidden');
+            } else {
+                if (isAdminMode) exitAdminMode();
+
+                isAutoRotateActive = true;
+                if (iconEl) iconEl.className = "fa-solid fa-pause text-amber-400";
+                if (textEl) textEl.innerText = "Slideshow: Aktif (10s)";
+                if (btnEl) btnEl.className = "px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center gap-1.5 shadow";
+                if (badgeEl) badgeEl.classList.remove('hidden');
+
+                if (autoRotateInterval) clearInterval(autoRotateInterval);
+                if (adRotateInterval) clearInterval(adRotateInterval);
+
+                autoRotateInterval = setInterval(() => {
+                    let currentIndex = dayOrder.indexOf(currentDay);
+                    let nextIndex = (currentIndex + 1) % dayOrder.length;
+                    currentDay = dayOrder[nextIndex];
+
+                    renderDayTabs();
+                    renderDailyTable();
+                }, 10000);
+
+                adRotateInterval = setInterval(() => {
+                    rotateAdBanner();
+                }, 7000);
+            }
+        }
+
+        function toggleAdminMode() {
+            if (!isAdminMode) {
+                document.getElementById('passcode-modal').classList.remove('hidden');
+                document.getElementById('admin-pin-input').value = '';
+                document.getElementById('pin-error').classList.add('hidden');
+                document.getElementById('admin-pin-input').focus();
+            } else {
+                exitAdminMode();
+            }
+        }
+
+        function verifyAdminPin() {
+            const pin = document.getElementById('admin-pin-input').value;
+            
+            if (pin === "8900") {
+                closePasscodeModal();
+                isAdminMode = true;
+                document.getElementById('admin-controls').innerHTML = `
+                    <button onclick="openMemberModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 hover:bg-indigo-500/30 flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-users"></i> Kelola Member
+                    </button>
+                    <button onclick="openAdminSettings()" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-sky-500/20 border border-sky-500/40 text-sky-300 hover:bg-sky-500/30 flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-images"></i> Kelola Poster
+                    </button>
+                    <button onclick="toggleAdminMode()" id="btn-mode-toggle" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-unlock"></i> Keluar Admin
+                    </button>
+                `;
+                document.getElementById('mode-badge').innerText = "Admin Mode";
+                document.getElementById('mode-badge').className = "text-[10px] uppercase px-2.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full font-semibold";
+                renderDailyTable();
+            } else {
+                document.getElementById('pin-error').classList.remove('hidden');
+            }
+        }
+
+        function closePasscodeModal() { document.getElementById('passcode-modal').classList.add('hidden'); }
+
+        function exitAdminMode() {
+            isAdminMode = false;
+            document.getElementById('admin-controls').innerHTML = `
+                <button onclick="toggleAdminMode()" id="btn-mode-toggle" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 flex items-center gap-1.5 shadow">
+                    <i class="fa-solid fa-lock text-sky-400" id="mode-icon"></i> <span id="mode-text">Admin Mode</span>
+                </button>
+            `;
+            document.getElementById('mode-badge').innerText = "Display On";
+            document.getElementById('mode-badge').className = "text-[10px] uppercase px-2.5 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-full font-semibold";
+            renderDailyTable();
+        }
+
+        // --- KELOLA MASTER MEMBER ---
+        function openMemberModal() {
+            renderMemberList();
+            document.getElementById('member-modal').classList.remove('hidden');
+        }
+
+        function closeMemberModal() {
+            document.getElementById('member-modal').classList.add('hidden');
+        }
+
+        function renderMemberList() {
+            const container = document.getElementById('member-list-container');
+            container.innerHTML = '';
+
+            if (!dbRecord.members || dbRecord.members.length === 0) {
+                container.innerHTML = `<div class="text-slate-500 italic text-[11px] py-2">Belum ada member terdaftar.</div>`;
+                return;
+            }
+
+            dbRecord.members.forEach((m, idx) => {
+                let expDate = new Date(m.expiry);
+                let formattedDate = isNaN(expDate) ? m.expiry : expDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+                
+                const item = document.createElement('div');
+                item.className = "flex justify-between items-center bg-slate-950 p-2 rounded-lg border border-slate-800";
+                item.innerHTML = `
+                    <div>
+                        <div class="font-bold text-white">${m.name}</div>
+                        <div class="text-[10px] text-sky-400">Habis: ${formattedDate}</div>
+                    </div>
+                    <button onclick="deleteMember(${idx})" class="text-rose-400 hover:text-rose-300 px-2 py-1 rounded bg-rose-500/10 border border-rose-500/20 text-[10px]">
+                        <i class="fa-solid fa-trash"></i> Hapus
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        async function saveMember() {
+            const nameInput = document.getElementById('member-name-input');
+            const expiryInput = document.getElementById('member-expiry-input');
+            const name = nameInput.value.trim();
+            const expiry = expiryInput.value;
+
+            if (!name || !expiry) {
+                alert("Harap isi Nama Member dan Tanggal Habis Masa Aktif!");
+                return;
+            }
+
+            if (!dbRecord.members) dbRecord.members = [];
+
+            // Cari jika member sudah ada (update) atau baru (tambah)
+            let existingIdx = dbRecord.members.findIndex(m => m.name.toLowerCase().trim() === name.toLowerCase());
+            if (existingIdx !== -1) {
+                dbRecord.members[existingIdx].expiry = expiry;
+            } else {
+                dbRecord.members.push({ name: name, expiry: expiry });
+            }
+
+            nameInput.value = '';
+            expiryInput.value = '';
+
+            renderMemberList();
+            renderDailyTable();
+            await saveToCloud();
+        }
+
+        async function deleteMember(idx) {
+            if (confirm("Hapus member ini dari daftar master?")) {
+                dbRecord.members.splice(idx, 1);
+                renderMemberList();
+                renderDailyTable();
+                await saveToCloud();
+            }
+        }
+
+        function openEditModal(slotIndex, courtKey) {
+            editSlotIndex = slotIndex;
+            editCourtKey = courtKey;
+            const slot = dbRecord.schedule[currentDay][slotIndex];
+            document.getElementById('modal-info').value = `${currentDay} • ${slot.time}`;
+            document.getElementById('modal-court').value = courtKey === 'l1' ? 'Lapangan 1' : courtKey === 'l2' ? 'Lapangan 2' : 'Lapangan 3';
+            document.getElementById('modal-input-name').value = slot[courtKey] === 'Kosong' ? '' : slot[courtKey];
+            document.getElementById('edit-modal').classList.remove('hidden');
+            document.getElementById('modal-input-name').focus();
+        }
+
+        function closeEditModal() { document.getElementById('edit-modal').classList.add('hidden'); }
+        function setModalValue(val) { document.getElementById('modal-input-name').value = val; }
+
+        async function saveSlotEdit() {
+            let val = document.getElementById('modal-input-name').value.trim();
+            if (!val) val = "Kosong";
+
+            dbRecord.schedule[currentDay][editSlotIndex][editCourtKey] = val;
+            closeEditModal();
+            renderDailyTable();
+            await saveToCloud();
+        }
+
+        function openAdminSettings() {
+            document.getElementById('admin-ads-input').value = dbRecord.ads ? dbRecord.ads.join(',\n') : '';
+            document.getElementById('admin-settings-modal').classList.remove('hidden');
+        }
+
+        function closeAdminSettingsModal() { document.getElementById('admin-settings-modal').classList.add('hidden'); }
+
+        async function saveAdminSettings() {
+            const rawText = document.getElementById('admin-ads-input').value;
+            dbRecord.ads = rawText.split(',').map(s => s.trim()).filter(s => s.length > 0);
+            currentAdIndex = 0;
+            updateAdBanner();
+            closeAdminSettingsModal();
+            await saveToCloud();
+            alert("Poster berhasil diperbarui!");
+        }
+
+        async function resetToDefault() {
+            if (confirm("Reset seluruh jadwal ke default?")) {
+                dbRecord.schedule = JSON.parse(JSON.stringify(defaultSchedule));
+                renderDailyTable();
+                await saveToCloud();
+                alert("Jadwal direset!");
+            }
+        }
+
+        async function fetchScheduleFromCloud() {
+            try {
+                let response = await fetch(SCRIPT_URL);
+                if (response.ok) {
+                    let rawData = await response.json();
+                    let record = safeParseJSON(rawData.record);
+                    if (record && record.schedule) {
+                        dbRecord = record;
+                        if (!dbRecord.members) dbRecord.members = [];
+                    }
+                }
+            } catch (err) {
+                console.warn("Gagal mengambil data dari cloud, menggunakan data lokal/default.");
+            }
+
+            renderDayTabs();
+            renderDailyTable();
+            updateAdBanner();
+        }
+
+        async function saveToCloud() {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(dbRecord));
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify(dbRecord)
+                });
+            } catch (err) {
+                console.warn("Gagal menyimpan ke Google Sheets");
+            }
+        }
+
+        // Inisialisasi
+        updateClock();
+        renderDayTabs();
+        renderDailyTable();
+        updateAdBanner();
+        fetchScheduleFromCloud();
+    </script>
+</body>
+</html>

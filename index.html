@@ -753,9 +753,28 @@
         fetchScheduleFromCloud();
 
         // --- FITUR AUTO-SYNC LATAR BELAKANG UNTUK TV STANDBY ---
-        // Mengecek pembaruan data secara otomatis ke Google Sheets setiap 5 detik
-        setInterval(() => {
-            fetchScheduleFromCloud();
+        // Mengecek pembaruan data secara otomatis ke Google Sheets setiap 5 detik dan langsung memperbarui tampilan layar
+        setInterval(async () => {
+            try {
+                let response = await fetch(SCRIPT_URL);
+                if (response.ok) {
+                    let rawData = await response.json();
+                    let record = safeParseJSON(rawData.record);
+                    if (record && record.schedule) {
+                        dbRecord = record;
+                        if (!dbRecord.members) dbRecord.members = [];
+
+                        // Jika sedang tidak dalam Admin Mode, otomatis render ulang tabel agar layar TV langsung terupdate
+                        if (!isAdminMode) {
+                            renderDayTabs();
+                            renderDailyTable();
+                            updateAdBanner();
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn("Auto-sync latar belakang gagal:", err);
+            }
         }, 5000);
     </script>
 </body>

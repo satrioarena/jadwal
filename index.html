@@ -341,7 +341,7 @@
         let dbRecord = {
             schedule: JSON.parse(JSON.stringify(defaultSchedule)),
             ads: ["https://i.imgur.com/8QzX88n.jpg"],
-            members: [] // Menyimpan data master member
+            members: []
         };
 
         let currentDay = "Senin";
@@ -446,7 +446,6 @@
             `;
         }
 
-        // Format Sel dengan deteksi otomatis Expired Date Member
         function formatCell(val) {
             if (val === "Not Available") {
                 return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800/80 text-slate-500 border border-slate-700 whitespace-nowrap"><span class="w-1 h-1 rounded-full bg-slate-600 mr-1 shrink-0"></span> N/A</span>`;
@@ -456,7 +455,6 @@
                 let cleanVal = val.replace(/^REG:\s*/i, '').trim();
                 return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20 whitespace-nowrap"><span class="w-1 h-1 rounded-full bg-rose-500 mr-1 shrink-0"></span> ${cleanVal}</span>`;
             } else {
-                // Cari apakah nama ini terdaftar di Master Member
                 let matchedMember = (dbRecord.members || []).find(m => m.name.toLowerCase().trim() === val.toLowerCase().trim());
                 let expiryBadge = "";
                 
@@ -590,7 +588,6 @@
             renderDailyTable();
         }
 
-        // --- KELOLA MASTER MEMBER ---
         function openMemberModal() {
             renderMemberList();
             document.getElementById('member-modal').classList.remove('hidden');
@@ -641,7 +638,6 @@
 
             if (!dbRecord.members) dbRecord.members = [];
 
-            // Cari jika member sudah ada (update) atau baru (tambah)
             let existingIdx = dbRecord.members.findIndex(m => m.name.toLowerCase().trim() === name.toLowerCase());
             if (existingIdx !== -1) {
                 dbRecord.members[existingIdx].expiry = expiry;
@@ -749,12 +745,18 @@
             }
         }
 
-        // Inisialisasi
+        // Inisialisasi awal
         updateClock();
         renderDayTabs();
         renderDailyTable();
         updateAdBanner();
         fetchScheduleFromCloud();
+
+        // --- FITUR AUTO-SYNC LATAR BELAKANG UNTUK TV STANDBY ---
+        // Mengecek pembaruan data secara otomatis ke Google Sheets setiap 5 detik
+        setInterval(() => {
+            fetchScheduleFromCloud();
+        }, 5000);
     </script>
 </body>
 </html>

@@ -348,7 +348,6 @@
         let isAdminMode = false;
         let isAutoRotateActive = false;
         let autoRotateInterval = null;
-        let adRotateInterval = null;
         let currentAdIndex = 0;
         let editSlotIndex = null;
         let editCourtKey = null;
@@ -750,7 +749,8 @@
             rotateAdBanner();
         }, 7000);
 
-        // --- FITUR AUTO-SYNC LATAR BELAKANG UNTUK TV STANDBY (Setiap 30 Detik) ---
+        // --- FITUR AUTO-SYNC LATAR BELAKANG KHUSUS JADWAL (Setiap 30 Detik) ---
+        // (Tidak mengganggu transisi poster sponsor)
         setInterval(async () => {
             try {
                 let response = await fetch(SCRIPT_URL);
@@ -764,7 +764,6 @@
                         if (!isAdminMode) {
                             renderDayTabs();
                             renderDailyTable();
-                            updateAdBanner();
                         }
                     }
                 }

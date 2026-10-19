@@ -142,7 +142,7 @@
         </div>
     </div>
 
-    <!-- Bagian Tengah: Kotak Pencarian Cepat (BARU) -->
+    <!-- Bagian Tengah: Kotak Pencarian Cepat -->
     <div class="hidden md:flex items-center gap-1.5 bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 shadow">
         <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs"></i>
         <input type="text" id="schedule-search-input" oninput="handleScheduleSearch(this.value)" placeholder="Cari nama / klub..." class="bg-transparent text-xs text-white focus:outline-none w-40 lg:w-56">
@@ -1586,6 +1586,28 @@
             }
         }, 1500); // Penundaan 1.5 detik
     }
+
+    // --- URUTAN INISIALISASI SAAT HALAMAN DIBUKA (TAMBAHAN BARU) ---
+    window.addEventListener('DOMContentLoaded', async () => {
+        // 1. Cek dulu apakah ada data di localStorage perangkat ini
+        let localData = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (localData) {
+            let parsed = safeParseJSON(localData);
+            if (parsed && parsed.schedule) {
+                dbRecord = parsed;
+                if (!dbRecord.members) dbRecord.members = [];
+            }
+        }
+
+        // 2. Render tampilan awal berdasarkan data lokal/default agar layar tidak kosong
+        renderDayTabs();
+        renderDailyTable();
+        updateAdBanner();
+
+        // 3. Tarik data terbaru dari Cloud (Google Sheets) untuk memastikan data 100% tersinkron
+        await fetchScheduleFromCloud();
+    });
+
 </script>
 </body>
 </html>

@@ -171,7 +171,7 @@
                 <!-- KOLOM 3 -->
                 <div class="w-full md:w-[25%] lg:w-[23%] bg-slate-950/90 rounded-xl border border-slate-800 p-2 relative shadow-lg flex items-center justify-center shrink-0 min-h-[300px] md:min-h-0">
                     <span class="absolute top-3 right-4 text-[9px] text-slate-400 font-bold tracking-widest uppercase z-10 bg-slate-900/90 px-2 py-0.5 rounded border border-slate-800">Sponsor</span>
-                    <img id="ad-banner-img" src="https://i.imgur.com/8QzX88n.jpg" alt="Poster Sponsor" class="w-full h-full object-contain rounded-lg shadow">
+                    <img id="ad-banner-img" src="atlantic.jpg" alt="Poster Sponsor" class="w-full h-full object-contain rounded-lg shadow">
                 </div>
 
             </div>
@@ -252,8 +252,8 @@
             </div>
             <div class="space-y-3 text-xs">
                 <div>
-                    <label class="block text-slate-300 font-semibold mb-1">Link URL Poster (Pisahkan dengan koma , jika lebih dari 1 gambar)</label>
-                    <textarea id="admin-ads-input" rows="4" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:border-sky-500 focus:outline-none font-mono text-[11px]" placeholder="https://...jpg, https://...jpg"></textarea>
+                    <label class="block text-slate-300 font-semibold mb-1">Nama File Poster (Pisahkan dengan koma , jika lebih dari 1 gambar)</label>
+                    <textarea id="admin-ads-input" rows="4" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:border-sky-500 focus:outline-none font-mono text-[11px]" placeholder="atlantic.jpg, MS.jpg, comingsoon.jpg"></textarea>
                 </div>
                 <div class="flex gap-2 pt-2 border-t border-slate-800">
                     <button onclick="resetToDefault()" class="bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 px-3 py-2 rounded-lg font-semibold transition">
@@ -340,7 +340,7 @@
 
         let dbRecord = {
             schedule: JSON.parse(JSON.stringify(defaultSchedule)),
-            ads: ["https://i.imgur.com/8QzX88n.jpg"],
+            ads: ["atlantic.jpg", "MS.jpg", "comingsoon.jpg"],
             members: []
         };
 
@@ -502,9 +502,7 @@
 
             if (isAutoRotateActive) {
                 clearInterval(autoRotateInterval);
-                clearInterval(adRotateInterval);
                 autoRotateInterval = null;
-                adRotateInterval = null;
                 isAutoRotateActive = false;
 
                 if (iconEl) iconEl.className = "fa-solid fa-play text-emerald-400";
@@ -521,7 +519,6 @@
                 if (badgeEl) badgeEl.classList.remove('hidden');
 
                 if (autoRotateInterval) clearInterval(autoRotateInterval);
-                if (adRotateInterval) clearInterval(adRotateInterval);
 
                 autoRotateInterval = setInterval(() => {
                     let currentIndex = dayOrder.indexOf(currentDay);
@@ -531,10 +528,6 @@
                     renderDayTabs();
                     renderDailyTable();
                 }, 10000);
-
-                adRotateInterval = setInterval(() => {
-                    rotateAdBanner();
-                }, 7000);
             }
         }
 
@@ -687,7 +680,7 @@
         }
 
         function openAdminSettings() {
-            document.getElementById('admin-ads-input').value = dbRecord.ads ? dbRecord.ads.join(',\n') : '';
+            document.getElementById('admin-ads-input').value = dbRecord.ads ? dbRecord.ads.join(', ') : '';
             document.getElementById('admin-settings-modal').classList.remove('hidden');
         }
 
@@ -752,8 +745,12 @@
         updateAdBanner();
         fetchScheduleFromCloud();
 
-        // --- FITUR AUTO-SYNC LATAR BELAKANG UNTUK TV STANDBY ---
-        // Mengecek pembaruan data secara otomatis ke Google Sheets setiap 5 detik dan langsung memperbarui tampilan layar
+        // --- POSTER BERPUTAR OTOMATIS SEJAK HALAMAN DIBUKA (Setiap 7 Detik) ---
+        setInterval(() => {
+            rotateAdBanner();
+        }, 7000);
+
+        // --- FITUR AUTO-SYNC LATAR BELAKANG UNTUK TV STANDBY (Setiap 30 Detik) ---
         setInterval(async () => {
             try {
                 let response = await fetch(SCRIPT_URL);
@@ -764,7 +761,6 @@
                         dbRecord = record;
                         if (!dbRecord.members) dbRecord.members = [];
 
-                        // Jika sedang tidak dalam Admin Mode, otomatis render ulang tabel agar layar TV langsung terupdate
                         if (!isAdminMode) {
                             renderDayTabs();
                             renderDailyTable();

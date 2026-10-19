@@ -67,25 +67,61 @@
             body {
                 background: white !important;
                 color: black !important;
-                overflow: auto !important;
+                overflow: visible !important;
+                height: auto !important;
             }
-            header, .bg-slate-900, main, footer, .fixed {
+            /* Sembunyikan seluruh elemen utama di luar modal laporan */
+            .print-hide {
                 display: none !important;
             }
-            #print-area {
-                display: block !important;
+            #report-modal {
                 position: static !important;
+                background: white !important;
+                inset: auto !important;
+                display: block !important;
+                padding: 0 !important;
+                z-index: 9999 !important;
+            }
+            #report-modal > div {
+                max-width: 100% !important;
                 width: 100% !important;
+                box-shadow: none !important;
+                border: none !important;
                 background: white !important;
                 color: black !important;
-                padding: 0 !important;
+                max-height: none !important;
+                height: auto !important;
+                overflow: visible !important;
+                margin: 0 !important;
+                padding: 10px !important;
+            }
+            /* Buka semua pembatas tinggi dan scroll agar data tercetak penuh */
+            #report-tab-daily, #report-tab-monthly {
+                display: block !important;
+                overflow: visible !important;
+                max-height: none !important;
+                height: auto !important;
+            }
+            #report-modal button {
+                display: none !important;
+            }
+            #report-modal .text-slate-300, #report-modal .text-slate-400 {
+                color: #334155 !important;
+            }
+            #report-modal .bg-slate-950, #report-modal .bg-slate-900 {
+                background: #f8fafc !important;
+                border: 1px solid #cbd5e1 !important;
+            }
+            #report-modal .text-white {
+                color: #0f172a !important;
             }
         }
     </style>
 </head>
 <body class="text-slate-100 font-sans flex flex-col justify-between selection:bg-sky-500 selection:text-white h-screen">
 
-    <header class="bg-slate-900/90 border-b border-slate-800 px-6 py-2 flex items-center justify-between backdrop-blur-md shrink-0 gap-3">
+    <!-- BARIS 1: HEADER UTAMA -->
+    <header class="print-hide bg-slate-900/90 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between backdrop-blur-md shrink-0 gap-3">
         <div class="flex items-center space-x-3">
             <div class="w-10 h-10 bg-slate-900 rounded-xl border border-slate-700 flex items-center justify-center overflow-hidden shrink-0 shadow-lg">
                 <img src="SA.png" alt="Logo Satrio Arena" class="w-full h-full object-cover">
@@ -96,13 +132,20 @@
             </div>
         </div>
 
-        <div class="flex items-center space-x-3">
-            <div class="text-right hidden sm:block">
-                <div id="live-clock" class="text-base font-black text-sky-400 tracking-wider font-mono">00:00:00</div>
-                <div id="live-date" class="text-[10px] text-slate-400 font-medium">Senin, 12 Oktober 2026</div>
-            </div>
+        <div class="text-right">
+            <div id="live-clock" class="text-base font-black text-sky-400 tracking-wider font-mono">00:00:00</div>
+            <div id="live-date" class="text-[10px] text-slate-400 font-medium">Senin, 12 Oktober 2026</div>
+        </div>
+    </header>
+
+    <!-- BARIS 2: PANEL KONTROL / MENU AKSI -->
+    <div class="print-hide bg-slate-950/80 px-6 py-2 border-b border-slate-800 flex items-center justify-between shrink-0 gap-2 flex-wrap">
+        <div class="text-xs text-slate-400 font-semibold flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-sky-400"></i> Panel Kontrol Display
+        </div>
+        <div class="flex items-center space-x-2.5">
             <button onclick="toggleAutoRotate()" id="btn-autorotate" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 flex items-center gap-1.5 shadow">
-                <i class="fa-solid fa-play text-emerald-400" id="autorotate-icon"></i> <span id="autorotate-text" class="hidden sm:inline">Slideshow: Mati</span>
+                <i class="fa-solid fa-play text-emerald-400" id="autorotate-icon"></i> <span id="autorotate-text">Slideshow: Mati</span>
             </button>
             <div id="admin-controls" class="flex items-center space-x-2">
                 <button onclick="toggleAdminMode()" id="btn-mode-toggle" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 flex items-center gap-1.5 shadow">
@@ -110,9 +153,10 @@
                 </button>
             </div>
         </div>
-    </header>
+    </div>
 
-    <div class="bg-slate-900/60 px-6 py-1.5 border-b border-slate-800 flex items-center justify-between shrink-0">
+    <!-- BARIS 3: NAVIGASI HARI & LEGENDA STATUS -->
+    <div class="print-hide bg-slate-900/60 px-6 py-2 border-b border-slate-800 flex items-center justify-between shrink-0 gap-4">
         <div class="flex items-center space-x-1.5 overflow-x-auto no-scrollbar w-full py-0.5" id="day-tabs-container"></div>
         <div class="hidden md:flex items-center space-x-4 text-xs text-slate-400 shrink-0">
             <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-500 border border-slate-700"></span> N/A</span>
@@ -123,7 +167,7 @@
     </div>
 
     <!-- MAIN CONTAINER -->
-    <main class="flex-1 px-4 sm:px-6 py-2 max-w-full mx-auto flex flex-col w-full overflow-hidden">
+    <main class="print-hide flex-1 px-4 sm:px-6 py-2 max-w-full mx-auto flex flex-col w-full overflow-hidden">
         <div class="bg-slate-900 rounded-xl border border-slate-800 shadow-2xl flex-1 flex flex-col overflow-hidden">
             <div class="px-4 py-2 bg-slate-800/40 border-b border-slate-800 flex flex-wrap justify-between items-center gap-2 shrink-0">
                 <h3 id="current-day-title" class="text-sm font-bold text-white flex items-center gap-2">
@@ -178,9 +222,9 @@
         </div>
     </main>
 
-    <footer class="bg-slate-900 border-t border-slate-800 px-6 py-2 flex flex-col md:flex-row items-center justify-between text-xs text-slate-400 shrink-0 gap-2">
+    <footer class="print-hide bg-slate-900 border-t border-slate-800 px-6 py-2 flex flex-col md:flex-row items-center justify-between text-xs text-slate-400 shrink-0 gap-2">
         <div class="flex flex-col sm:flex-row items-center sm:space-x-6 gap-1 text-center sm:text-left shrink-0">
-            <span><i class="fa-solid fa-phone text-sky-400 mr-1.5"></i> Info & Booking: <b>Memo : 0813-1020-4112</b> | <b>Bheghe : 0857-7749-9997</b> | <b>Admin : 0857-6271-8949</b></span>
+            <span><i class="fa-solid fa-phone text-sky-400 mr-1.5"></i> Info & Booking: <b>Memo : 0813-1020-4112</b> | <b>Bheghe : 0857-7749-9997</b> | <b>Admin : 0822-2878-2467</b></span>
             <span class="hidden lg:inline"><i class="fa-solid fa-location-dot text-sky-400 mr-1.5"></i> GOR SATRIO ARENA</span>
         </div>
         <div class="marquee-container flex-1 max-w-xl mx-4 overflow-hidden text-sky-400 font-extrabold text-sm sm:text-base italic tracking-wide">
@@ -229,6 +273,19 @@
                     <label class="block text-slate-400 mb-1">Nama Pembooking / Klub (Ketik "REG: Nama" untuk Reguler)</label>
                     <input type="text" id="modal-input-name" placeholder="Contoh: Pak Fiqih atau REG: Budi" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-sky-500 focus:outline-none font-medium text-sm">
                 </div>
+                <!-- Status Pembayaran Khusus Reguler -->
+                <div>
+                    <label class="block text-slate-400 mb-1">Status Pembayaran Reguler (Opsional)</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="modal-pay-status" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:border-sky-500 focus:outline-none">
+                            <option value="">-- Pilih Status --</option>
+                            <option value="Lunas">Lunas</option>
+                            <option value="DP">DP</option>
+                            <option value="Booking">Booking (Belum)</option>
+                        </select>
+                        <input type="text" id="modal-pay-note" placeholder="Ket/Nominal (Cth: 50rb)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:border-sky-500 focus:outline-none">
+                    </div>
+                </div>
                 <div class="flex gap-2 pt-2">
                     <button onclick="setModalValue('Kosong')" class="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 py-2 rounded-lg font-semibold transition">
                         Set Kosong
@@ -236,6 +293,118 @@
                     <button onclick="saveSlotEdit()" class="flex-1 bg-sky-500 hover:bg-sky-400 text-slate-950 py-2 rounded-lg font-bold transition shadow">
                         Simpan Perubahan
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Booking Massal (Multi-Lapangan & Multi-Jam dengan Pengecekan Bentrok) -->
+    <div id="bulk-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 shadow-2xl space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-sky-400"></i> Booking Massal / Multi-Slot
+                </h3>
+                <button onclick="closeBulkModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-2.5 text-xs">
+                <div>
+                    <label class="block text-slate-400 mb-1">Pilih Hari</label>
+                    <select id="bulk-day" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:border-sky-500 focus:outline-none">
+                        <option value="Senin">Senin</option>
+                        <option value="Selasa">Selasa</option>
+                        <option value="Rabu">Rabu</option>
+                        <option value="Kamis">Kamis</option>
+                        <option value="Jumat">Jumat</option>
+                        <option value="Sabtu">Sabtu</option>
+                        <option value="Minggu">Minggu</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Pilih Lapangan (Bisa lebih dari 1)</label>
+                    <div class="flex gap-4 pt-1 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                        <label class="flex items-center gap-1.5 cursor-pointer text-white font-semibold"><input type="checkbox" id="bulk-l1" class="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-0"> Lapangan 1</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer text-white font-semibold"><input type="checkbox" id="bulk-l2" class="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-0"> Lapangan 2</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer text-white font-semibold"><input type="checkbox" id="bulk-l3" class="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-0"> Lapangan 3</label>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-slate-400 mb-1">Jam Mulai</label>
+                        <select id="bulk-start-time" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:border-sky-500 focus:outline-none font-mono"></select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1">Jam Selesai</label>
+                        <select id="bulk-end-time" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:border-sky-500 focus:outline-none font-mono"></select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Nama Pembooking / Klub (Reguler)</label>
+                    <input type="text" id="bulk-name" placeholder="Contoh: Klub ABC" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:border-sky-500 focus:outline-none font-medium">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Status Pembayaran</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="bulk-pay-status" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:border-sky-500 focus:outline-none">
+                            <option value="">-- Pilih Status --</option>
+                            <option value="Lunas">Lunas</option>
+                            <option value="DP">DP</option>
+                            <option value="Booking">Booking (Belum)</option>
+                        </select>
+                        <input type="text" id="bulk-pay-note" placeholder="Ket/Nominal (Cth: 100rb)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:border-sky-500 focus:outline-none">
+                    </div>
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button onclick="closeBulkModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg font-semibold transition">Batal</button>
+                    <button onclick="saveBulkBooking()" class="flex-1 bg-sky-500 hover:bg-sky-400 text-slate-950 py-2 rounded-lg font-bold transition shadow">Proses Massal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Laporan GOR (Harian & Bulanan + Tombol Cetak) -->
+    <div id="report-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-5 shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2 shrink-0">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie text-amber-400"></i> Laporan GOR Satrio Arena
+                </h3>
+                <div class="flex items-center gap-2">
+                    <button onclick="window.print()" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-2.5 py-1 rounded-lg text-xs transition shadow flex items-center gap-1 print-hide">
+                        <i class="fa-solid fa-print"></i> Cetak
+                    </button>
+                    <button onclick="closeReportModal()" class="text-slate-400 hover:text-white print-hide"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+
+            <!-- Tab Menu Laporan -->
+            <div class="flex gap-2 border-b border-slate-800 pb-2 shrink-0 print-hide">
+                <button onclick="switchReportTab('daily')" id="tab-btn-daily" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 transition">Closing Harian</button>
+                <button onclick="switchReportTab('monthly')" id="tab-btn-monthly" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Rekap Bulanan</button>
+            </div>
+
+            <!-- Konten Tab Harian -->
+            <div id="report-tab-daily" class="flex-1 overflow-y-auto space-y-3 text-xs pr-1">
+                <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800 print-hide">
+                    <label class="font-semibold text-slate-300">Pilih Hari:</label>
+                    <select id="report-select-day" onchange="generateDailyReport()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white font-semibold focus:outline-none">
+                        <option value="Senin">Senin</option>
+                        <option value="Selasa">Selasa</option>
+                        <option value="Rabu">Rabu</option>
+                        <option value="Kamis">Kamis</option>
+                        <option value="Jumat">Jumat</option>
+                        <option value="Sabtu">Sabtu</option>
+                        <option value="Minggu">Minggu</option>
+                    </select>
+                </div>
+                <div id="daily-report-content" class="space-y-2.5"></div>
+            </div>
+
+            <!-- Konten Tab Bulanan -->
+            <div id="report-tab-monthly" class="flex-1 overflow-y-auto space-y-3 text-xs pr-1 hidden">
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+                    <div class="font-semibold text-sky-400"><i class="fa-solid fa-calculator mr-1"></i> Ringkasan Estimasi Sebulan (7 Hari Aktif)</div>
+                    <div id="monthly-report-content" class="space-y-2"></div>
                 </div>
             </div>
         </div>
@@ -267,7 +436,7 @@
         </div>
     </div>
 
-    <!-- MODAL BARU: Kelola Master Member & Expired Date -->
+    <!-- MODAL: Kelola Master Member & Expired Date -->
     <div id="member-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-5 shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2 shrink-0">
@@ -452,7 +621,28 @@
                 return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 whitespace-nowrap"><span class="w-1 h-1 rounded-full bg-emerald-500 mr-1 shrink-0"></span> Kosong</span>`;
             } else if (val.toUpperCase().startsWith("REG:") || val.toUpperCase().includes("REGULER")) {
                 let cleanVal = val.replace(/^REG:\s*/i, '').trim();
-                return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20 whitespace-nowrap"><span class="w-1 h-1 rounded-full bg-rose-500 mr-1 shrink-0"></span> ${cleanVal}</span>`;
+                let paymentBadge = "";
+
+                let bracketMatch = cleanVal.match(/\[(.*?)\]/);
+                if (bracketMatch) {
+                    let statusText = bracketMatch[1];
+                    cleanVal = cleanVal.replace(/\[.*?\]/, '').trim();
+
+                    let badgeColor = "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
+                    let lowerStatus = statusText.toLowerCase();
+                    if (lowerStatus.includes("dp")) {
+                        badgeColor = "text-amber-400 bg-amber-500/10 border-amber-500/20";
+                    } else if (lowerStatus.includes("booking") || lowerStatus.includes("belum")) {
+                        badgeColor = "text-rose-400 bg-rose-500/10 border-rose-500/20";
+                    }
+
+                    paymentBadge = `<div class="text-[8px] px-1.5 py-0.2 rounded border ${badgeColor} font-semibold leading-tight mt-0.5 inline-block">${statusText}</div>`;
+                }
+
+                return `<div class="inline-flex flex-col items-start px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 max-w-full overflow-hidden">
+                    <span class="text-[10px] font-bold whitespace-nowrap flex items-center"><span class="w-1 h-1 rounded-full bg-rose-500 mr-1 shrink-0"></span> ${cleanVal}</span>
+                    ${paymentBadge}
+                </div>`;
             } else {
                 let matchedMember = (dbRecord.members || []).find(m => m.name.toLowerCase().trim() === val.toLowerCase().trim());
                 let expiryBadge = "";
@@ -548,6 +738,12 @@
                 closePasscodeModal();
                 isAdminMode = true;
                 document.getElementById('admin-controls').innerHTML = `
+                    <button onclick="openReportModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500/30 flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-chart-pie"></i> Laporan
+                    </button>
+                    <button onclick="openBulkModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-purple-500/20 border border-purple-500/40 text-purple-300 hover:bg-purple-500/30 flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-layer-group"></i> Booking Massal
+                    </button>
                     <button onclick="openMemberModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 hover:bg-indigo-500/30 flex items-center gap-1.5 shadow">
                         <i class="fa-solid fa-users"></i> Kelola Member
                     </button>
@@ -578,6 +774,273 @@
             document.getElementById('mode-badge').innerText = "Display On";
             document.getElementById('mode-badge').className = "text-[10px] uppercase px-2.5 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-full font-semibold";
             renderDailyTable();
+        }
+
+        // --- LAPORAN GOR LOGIC ---
+        function openReportModal() {
+            document.getElementById('report-select-day').value = currentDay;
+            switchReportTab('daily');
+            generateDailyReport();
+            document.getElementById('report-modal').classList.remove('hidden');
+        }
+
+        function closeReportModal() {
+            document.getElementById('report-modal').classList.add('hidden');
+        }
+
+        function switchReportTab(tab) {
+            const btnDaily = document.getElementById('tab-btn-daily');
+            const btnMonthly = document.getElementById('tab-btn-monthly');
+            const tabDaily = document.getElementById('report-tab-daily');
+            const tabMonthly = document.getElementById('report-tab-monthly');
+
+            if (tab === 'daily') {
+                btnDaily.className = "flex-1 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 transition";
+                btnMonthly.className = "flex-1 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+                tabDaily.classList.remove('hidden');
+                tabMonthly.classList.add('hidden');
+                generateDailyReport();
+            } else {
+                btnMonthly.className = "flex-1 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 transition";
+                btnDaily.className = "flex-1 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+                tabMonthly.classList.remove('hidden');
+                tabDaily.classList.add('hidden');
+                generateMonthlyReport();
+            }
+        }
+
+        function generateDailyReport() {
+            let day = document.getElementById('report-select-day').value;
+            let slots = (dbRecord.schedule && dbRecord.schedule[day]) ? dbRecord.schedule[day] : emptyDayTemplate;
+
+            let memberHours = 0;
+            let regulerHours = 0;
+            let emptyCount = 0;
+            let paymentBreakdown = { lunas: 0, dp: 0, booking: 0 };
+            let regulerList = [];
+
+            slots.forEach(slot => {
+                ['l1', 'l2', 'l3'].forEach(court => {
+                    let val = slot[court];
+                    if (val === "Kosong" || !val) {
+                        emptyCount++;
+                    } else if (val === "Not Available") {
+                        // ignore
+                    } else if (val.toUpperCase().startsWith("REG:") || val.toUpperCase().includes("REGULER")) {
+                        regulerHours++;
+                        let statusType = "Booking";
+                        let lowerVal = val.toLowerCase();
+                        if (lowerVal.includes("lunas")) {
+                            paymentBreakdown.lunas++;
+                            statusType = "Lunas";
+                        } else if (lowerVal.includes("dp")) {
+                            paymentBreakdown.dp++;
+                            statusType = "DP";
+                        } else {
+                            paymentBreakdown.booking++;
+                        }
+                        regulerList.push({ time: slot.time, court: court.toUpperCase(), detail: val, status: statusType });
+                    } else {
+                        memberHours++;
+                    }
+                });
+            });
+
+            let container = document.getElementById('daily-report-content');
+            container.innerHTML = `
+                <div class="grid grid-cols-3 gap-2 text-center">
+                    <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                        <div class="text-[10px] text-slate-400">Jam Member</div>
+                        <div class="text-base font-bold text-sky-400">${memberHours} Jam</div>
+                    </div>
+                    <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                        <div class="text-[10px] text-slate-400">Jam Reguler</div>
+                        <div class="text-base font-bold text-rose-400">${regulerHours} Jam</div>
+                    </div>
+                    <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                        <div class="text-[10px] text-slate-400">Slot Kosong</div>
+                        <div class="text-base font-bold text-emerald-400">${emptyCount} Slot</div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+                    <div class="font-semibold text-amber-400">Status Pembayaran Reguler (${day}):</div>
+                    <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
+                        <div class="bg-emerald-500/10 border border-emerald-500/20 p-2 rounded-lg text-emerald-300">
+                            <div>Lunas</div>
+                            <div class="font-bold text-sm">${paymentBreakdown.lunas}</div>
+                        </div>
+                        <div class="bg-amber-500/10 border border-amber-500/20 p-2 rounded-lg text-amber-300">
+                            <div>DP</div>
+                            <div class="font-bold text-sm">${paymentBreakdown.dp}</div>
+                        </div>
+                        <div class="bg-rose-500/10 border border-rose-500/20 p-2 rounded-lg text-rose-300">
+                            <div>Booking</div>
+                            <div class="font-bold text-sm">${paymentBreakdown.booking}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+                    <div class="font-semibold text-slate-300">Daftar Booking Reguler Hari Ini:</div>
+                    <div class="max-h-36 overflow-y-auto space-y-1">
+                        ${regulerList.length === 0 ? '<div class="text-slate-500 italic">Tidak ada jadwal reguler hari ini.</div>' : 
+                          regulerList.map(r => `<div class="flex justify-between items-center bg-slate-900 p-1.5 rounded border border-slate-800 text-[11px]">
+                              <span><b>${r.time}</b> (${r.court})</span>
+                              <span class="text-sky-300">${r.detail}</span>
+                          </div>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateMonthlyReport() {
+            let totalRegulerHoursAll = 0;
+            let totalMemberHoursAll = 0;
+            let totalRegulerCount = 0;
+
+            dayOrder.forEach(day => {
+                let slots = dbRecord.schedule[day] || emptyDayTemplate;
+                slots.forEach(slot => {
+                    ['l1', 'l2', 'l3'].forEach(court => {
+                        let val = slot[court];
+                        if (val && val !== "Kosong" && val !== "Not Available") {
+                            if (val.toUpperCase().startsWith("REG:") || val.toUpperCase().includes("REGULER")) {
+                                totalRegulerHoursAll++;
+                                totalRegulerCount++;
+                            } else {
+                                totalMemberHoursAll++;
+                            }
+                        }
+                    });
+                });
+            });
+
+            let estimatedRevenue = totalRegulerCount * 50000;
+
+            let container = document.getElementById('monthly-report-content');
+            container.innerHTML = `
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                        <div class="text-[10px] text-slate-400">Total Jam Member / Mingguan</div>
+                        <div class="text-sm font-bold text-sky-400">${totalMemberHoursAll} Jam / Siklus</div>
+                    </div>
+                    <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                        <div class="text-[10px] text-slate-400">Total Jam Reguler / Mingguan</div>
+                        <div class="text-sm font-bold text-rose-400">${totalRegulerHoursAll} Jam / Siklus</div>
+                    </div>
+                </div>
+                <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 space-y-1">
+                    <div class="text-[11px] text-slate-400">Estimasi Pendapatan Reguler / Siklus Mingguan:</div>
+                    <div class="text-lg font-black text-emerald-400">Rp ${estimatedRevenue.toLocaleString('id-ID')}</div>
+                    <div class="text-[9px] text-slate-500 italic">*Dihitung berdasarkan rekam jadwal aktif saat ini. Anda dapat mencatat pengeluaran operasional bulanan di buku kas fisik GOR.</div>
+                </div>
+            `;
+        }
+
+        // --- BOOKING MASSAL LOGIC ---
+        function openBulkModal() {
+            document.getElementById('bulk-day').value = currentDay;
+            document.getElementById('bulk-l1').checked = false;
+            document.getElementById('bulk-l2').checked = false;
+            document.getElementById('bulk-l3').checked = false;
+            document.getElementById('bulk-name').value = '';
+            document.getElementById('bulk-pay-status').value = '';
+            document.getElementById('bulk-pay-note').value = '';
+
+            let slots = emptyDayTemplate;
+            let startSelect = document.getElementById('bulk-start-time');
+            let endSelect = document.getElementById('bulk-end-time');
+            startSelect.innerHTML = '';
+            endSelect.innerHTML = '';
+
+            slots.forEach((s, idx) => {
+                let opt1 = document.createElement('option');
+                opt1.value = idx;
+                opt1.innerText = s.time;
+                startSelect.appendChild(opt1);
+
+                let opt2 = document.createElement('option');
+                opt2.value = idx;
+                opt2.innerText = s.time;
+                endSelect.appendChild(opt2);
+            });
+
+            if (slots.length > 0) endSelect.value = slots.length - 1;
+
+            document.getElementById('bulk-modal').classList.remove('hidden');
+        }
+
+        function closeBulkModal() {
+            document.getElementById('bulk-modal').classList.add('hidden');
+        }
+
+        async function saveBulkBooking() {
+            let day = document.getElementById('bulk-day').value;
+            let isL1 = document.getElementById('bulk-l1').checked;
+            let isL2 = document.getElementById('bulk-l2').checked;
+            let isL3 = document.getElementById('bulk-l3').checked;
+            let startIndex = parseInt(document.getElementById('bulk-start-time').value);
+            let endIndex = parseInt(document.getElementById('bulk-end-time').value);
+            let nameVal = document.getElementById('bulk-name').value.trim();
+            let payStatus = document.getElementById('bulk-pay-status').value;
+            let payNote = document.getElementById('bulk-pay-note').value.trim();
+
+            if (!isL1 && !isL2 && !isL3) {
+                alert("Pilih minimal 1 lapangan!");
+                return;
+            }
+            if (startIndex > endIndex) {
+                alert("Jam mulai tidak boleh lebih besar dari Jam selesai!");
+                return;
+            }
+            if (!nameVal) {
+                alert("Harap masukkan nama pembooking / klub!");
+                return;
+            }
+
+            let cleanName = nameVal.replace(/^REG:\s*/i, '').trim();
+            let formattedVal = `REG: ${cleanName}`;
+            if (payStatus) {
+                let statusStr = payNote ? `${payStatus}: ${payNote}` : payStatus;
+                formattedVal += ` [${statusStr}]`;
+            }
+
+            if (!dbRecord.schedule[day]) {
+                dbRecord.schedule[day] = JSON.parse(JSON.stringify(emptyDayTemplate));
+            }
+
+            let conflicts = [];
+            for (let i = startIndex; i <= endIndex; i++) {
+                let slotTime = emptyDayTemplate[i].time;
+                if (isL1 && dbRecord.schedule[day][i].l1 && dbRecord.schedule[day][i].l1 !== "Kosong" && dbRecord.schedule[day][i].l1 !== "Not Available") {
+                    conflicts.push(`Jam ${slotTime} (Lap 1: ${dbRecord.schedule[day][i].l1})`);
+                }
+                if (isL2 && dbRecord.schedule[day][i].l2 && dbRecord.schedule[day][i].l2 !== "Kosong" && dbRecord.schedule[day][i].l2 !== "Not Available") {
+                    conflicts.push(`Jam ${slotTime} (Lap 2: ${dbRecord.schedule[day][i].l2})`);
+                }
+                if (isL3 && dbRecord.schedule[day][i].l3 && dbRecord.schedule[day][i].l3 !== "Kosong" && dbRecord.schedule[day][i].l3 !== "Not Available") {
+                    conflicts.push(`Jam ${slotTime} (Lap 3: ${dbRecord.schedule[day][i].l3})`);
+                }
+            }
+
+            if (conflicts.length > 0) {
+                let msg = "PERHATIAN: Ditemukan slot yang sudah terisi:\n\n" + conflicts.slice(0, 5).join("\n") + (conflicts.length > 5 ? "\n...dan slot lainnya." : "") + "\n\nApakah Anda tetap ingin menimpa jadwal tersebut?";
+                if (!confirm(msg)) {
+                    return;
+                }
+            }
+
+            for (let i = startIndex; i <= endIndex; i++) {
+                if (isL1) dbRecord.schedule[day][i].l1 = formattedVal;
+                if (isL2) dbRecord.schedule[day][i].l2 = formattedVal;
+                if (isL3) dbRecord.schedule[day][i].l3 = formattedVal;
+            }
+
+            closeBulkModal();
+            renderDailyTable();
+            await saveToCloud();
+            alert("Booking massal berhasil disimpan!");
         }
 
         function openMemberModal() {
@@ -660,7 +1123,37 @@
             const slot = dbRecord.schedule[currentDay][slotIndex];
             document.getElementById('modal-info').value = `${currentDay} • ${slot.time}`;
             document.getElementById('modal-court').value = courtKey === 'l1' ? 'Lapangan 1' : courtKey === 'l2' ? 'Lapangan 2' : 'Lapangan 3';
-            document.getElementById('modal-input-name').value = slot[courtKey] === 'Kosong' ? '' : slot[courtKey];
+            
+            let rawVal = slot[courtKey] === 'Kosong' ? '' : slot[courtKey];
+            let nameOnly = rawVal;
+            let foundStatus = "";
+            let foundNote = "";
+
+            if (rawVal.toUpperCase().startsWith("REG:")) {
+                let clean = rawVal.replace(/^REG:\s*/i, '').trim();
+                let bracketMatch = clean.match(/\[(.*?)\]/);
+                if (bracketMatch) {
+                    let fullStatus = bracketMatch[1];
+                    nameOnly = clean.replace(/\[.*?\]/, '').trim();
+                    if (fullStatus.includes(":")) {
+                        let parts = fullStatus.split(":");
+                        foundStatus = parts[0].trim();
+                        foundNote = parts.slice(1).join(":").trim();
+                    } else {
+                        foundStatus = fullStatus;
+                        foundNote = "";
+                    }
+                } else {
+                    nameOnly = clean;
+                }
+                document.getElementById('modal-input-name').value = "REG: " + nameOnly;
+            } else {
+                document.getElementById('modal-input-name').value = rawVal;
+            }
+
+            document.getElementById('modal-pay-status').value = foundStatus;
+            document.getElementById('modal-pay-note').value = foundNote;
+
             document.getElementById('edit-modal').classList.remove('hidden');
             document.getElementById('modal-input-name').focus();
         }
@@ -670,7 +1163,24 @@
 
         async function saveSlotEdit() {
             let val = document.getElementById('modal-input-name').value.trim();
-            if (!val) val = "Kosong";
+            let payStatus = document.getElementById('modal-pay-status').value;
+            let payNote = document.getElementById('modal-pay-note').value.trim();
+
+            if (!val || val.toLowerCase() === 'kosong') {
+                val = "Kosong";
+            } else if (val.toUpperCase().startsWith("REG:") || val.toUpperCase().includes("REGULER")) {
+                let cleanName = val.replace(/^REG:\s*/i, '').replace(/\[.*?\]/g, '').trim();
+                if (cleanName) {
+                    let formatted = `REG: ${cleanName}`;
+                    if (payStatus) {
+                        let statusStr = payNote ? `${payStatus}: ${payNote}` : payStatus;
+                        formatted += ` [${statusStr}]`;
+                    }
+                    val = formatted;
+                } else {
+                    val = "Kosong";
+                }
+            }
 
             dbRecord.schedule[currentDay][editSlotIndex][editCourtKey] = val;
             closeEditModal();
@@ -750,7 +1260,6 @@
         }, 7000);
 
         // --- FITUR AUTO-SYNC LATAR BELAKANG KHUSUS JADWAL (Setiap 30 Detik) ---
-        // (Tidak mengganggu transisi poster sponsor)
         setInterval(async () => {
             try {
                 let response = await fetch(SCRIPT_URL);

@@ -1480,19 +1480,34 @@
         }
     }
 
-    async function fetchScheduleFromCloud() {
+    // FUNGSI FETCH YANG DIPERBARUI: Lebih pintar mendeteksi perubahan data
+    async function fetchScheduleFromCloud(isInitialLoad = false) {
         try {
             let response = await fetch(SCRIPT_URL);
             if (response.ok) {
                 let rawData = await response.json();
                 let record = safeParseJSON(rawData.record);
                 if (record && record.schedule) {
+                    
+                    // Cek apakah ada data baru yang berbeda dari memori TV saat ini
+                    let isDataChanged = JSON.stringify(dbRecord.schedule) !== JSON.stringify(record.schedule) || 
+                                        JSON.stringify(dbRecord.ads) !== JSON.stringify(record.ads);
+                    
                     dbRecord = record;
                     if (!dbRecord.members) dbRecord.members = [];
+
+                    // Render ulang hanya jika ini proses load pertama, ATAU jika ada perubahan data
+                    // Tujuannya agar layar tidak berkedip (flicker) jika datanya sama saja
+                    if (isInitialLoad || isDataChanged) {
+                        renderDayTabs(); 
+                        renderDailyTable(); 
+                        updateAdBanner();
+                    }
                 }
             }
-        } catch (err) { console.warn("Gagal mengambil data dari cloud, menggunakan data lokal."); }
-        renderDayTabs(); renderDailyTable(); updateAdBanner();
+        } catch (err) { 
+            console.warn("Gagal mengambil data dari cloud, menggunakan data lokal."); 
+        }
     }
 
     function updateCloudIndicator(status, message) {
@@ -1540,13 +1555,26 @@
         }
     }
 
-    // Inisialisasi awal
+    // INISIALISASI AWAL (Hanya dipanggil sekali saat web dibuka)
     updateClock(); 
     renderDayTabs(); 
     renderDailyTable(); 
     updateAdBanner(); 
-    fetchScheduleFromCloud();
+    fetchScheduleFromCloud(true); // Param 'true' = Render paksa karena buka web pertama kali
+
+    // 1. ROTASI BANNER (Berjalan setiap 7 Detik)
     setInterval(() => { rotateAdBanner(); }, 7000);
-</script>
+
+    // 2. OPSI A - POLLING TIMER (Cek jadwal otomatis dari cloud setiap 30 Detik)
+    setInterval(() => {
+        // PENANGANAN KHUSUS: 
+        // Jangan sinkronisasi data baru JIKA TV sedang dalam "Mode Admin" atau sedang mencari nama.
+        // Tujuannya agar saat Admin sedang asik mengetik mengedit jadwal, tiba-tiba jadwal tidak me-refresh/me-reset ketikannya.
+        if (!isAdminMode && !isSearching) {
+            fetchScheduleFromCloud(false);
+        }
+    }, 30000);
+
+    </script>
 </body>
 </html>

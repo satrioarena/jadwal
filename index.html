@@ -845,9 +845,7 @@
 
         if (isAutoRotateActive) {
             clearInterval(autoRotateInterval);
-            clearInterval(bannerRotateInterval);
             autoRotateInterval = null;
-            bannerRotateInterval = null;
             isAutoRotateActive = false;
 
             if (iconEl) iconEl.className = "fa-solid fa-play text-emerald-400";
@@ -863,7 +861,6 @@
             if (badgeEl) badgeEl.classList.remove('hidden');
 
             if (autoRotateInterval) clearInterval(autoRotateInterval);
-            if (bannerRotateInterval) clearInterval(bannerRotateInterval);
 
             autoRotateInterval = setInterval(() => {
                 let currentIndex = dayOrder.indexOf(currentDay);
@@ -872,10 +869,6 @@
                 renderDayTabs();
                 renderDailyTable();
             }, 10000);
-            
-            bannerRotateInterval = setInterval(() => {
-                rotateAdBanner();
-            }, 7000);
         }
     }
 
@@ -1583,9 +1576,12 @@
         renderDailyTable();
         updateAdBanner();
 
+        // DITAMBAHKAN: Poster sekarang berputar otomatis terlepas dari tombol slideshow aktif atau tidak
+        bannerRotateInterval = setInterval(rotateAdBanner, 7000);
+
         await fetchScheduleFromCloud();
     });
 
-</script>
+    </script>
 </body>
 </html>

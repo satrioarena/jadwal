@@ -198,7 +198,7 @@
                 </h3>
                 <div id="day-summary-badges" class="flex items-center gap-2 text-[11px] font-semibold"></div>
                 <span id="rotate-status-badge" class="hidden text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-full animate-pulse">
-                    <i class="fa-solid fa-rotate mr-1"></i> Auto-Play Aktif
+                    <i class="fa-solid fa-rotate mr-1"></i> Auto-Play Aktif (10s)
                 </span>
             </div>
             
@@ -471,26 +471,32 @@
         </div>
     </div>
 
-    <!-- Admin Settings Modal (Diperbarui) -->
+    <!-- Admin Settings Modal -->
     <div id="admin-settings-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 shadow-2xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2">
                 <h3 class="font-bold text-sm text-white flex items-center gap-2">
-                    <i class="fa-solid fa-triangle-exclamation text-rose-400"></i> Pengaturan & Reset
+                    <i class="fa-solid fa-images text-sky-400"></i> Kelola Pengaturan & Poster
                 </h3>
                 <button onclick="closeAdminSettingsModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="space-y-3 text-xs">
-                <div class="bg-sky-500/10 border border-sky-500/20 p-3 rounded-lg text-sky-400 mb-3 leading-relaxed">
-                    <i class="fa-solid fa-circle-info mr-1"></i> <b>Info:</b> Daftar poster sekarang diatur langsung dari GitHub. Rotasi poster akan berjalan otomatis menggunakan file yang ada di repository Anda.
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Nama File Poster (Pisahkan dengan koma ,)</label>
+                    <textarea id="admin-ads-input" rows="3" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:border-sky-500 focus:outline-none font-mono text-[11px]" placeholder="atlantic.jpg, MS.jpg, comingsoon.jpg"></textarea>
                 </div>
-                <div class="space-y-2 pt-2 border-t border-slate-800">
-                    <button onclick="resetRegulerOnly()" class="w-full bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 py-2 rounded-lg font-bold transition flex items-center justify-center gap-2 shadow">
+                <div class="pt-2 border-t border-slate-800 space-y-2">
+                    <button onclick="resetRegulerOnly()" class="w-full bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 py-2 rounded-lg font-bold transition flex items-center justify-center gap-2">
                         <i class="fa-solid fa-rotate-left"></i> Reset / Kosongkan Jadwal Reguler Saja
                     </button>
-                    <button onclick="resetToDefault()" class="w-full bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 px-3 py-2 rounded-lg font-semibold transition flex items-center justify-center gap-2 shadow">
-                        <i class="fa-solid fa-trash-can"></i> Reset Semua Default (Kosong Total)
-                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="resetToDefault()" class="bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 px-3 py-2 rounded-lg font-semibold transition">
+                            Reset Semua Default
+                        </button>
+                        <button onclick="saveAdminSettings()" class="flex-1 bg-sky-500 hover:bg-sky-400 text-slate-950 py-2 rounded-lg font-bold transition shadow">
+                            Simpan Poster
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -565,25 +571,22 @@
         "Minggu": JSON.parse(JSON.stringify(emptyDayTemplate))
     };
 
-    // Objek Database Utama (Sudah tidak ada koneksi poster di sini)
     let dbRecord = {
         schedule: JSON.parse(JSON.stringify(defaultSchedule)),
+        ads: ["atlantic.jpg", "MS.jpg", "comingsoon.jpg"],
         members: []
     };
-
-    // DAFTAR POSTER HARDCODE LANGSUNG DARI GITHUB (Ganti/Tambah nama file di sini jika ada poster baru)
-    const adBanners = ["atlantic.jpg", "MS.jpg", "comingsoon.jpg", "kidsopen.png", "SA.jpg"];
 
     let currentDay = "Senin";
     let isAdminMode = false;
     let isAutoRotateActive = false;
     let autoRotateInterval = null;
-    let bannerRotateInterval = null; 
     let currentAdIndex = 0;
     let editSlotIndex = null;
     let editCourtKey = null;
     const dayOrder = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
 
+    // Variabel Pencarian Global
     let isSearching = false;
     let searchKeyword = "";
 
@@ -659,6 +662,7 @@
         
         let countKosong = 0, countMember = 0, countReguler = 0;
 
+        // Jika sedang dalam mode pencarian aktif
         if (isSearching && searchKeyword.length > 0) {
             if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-magnifying-glass text-sky-400"></i> Hasil Pencarian: "${searchKeyword}" (Semua Hari)`;
             
@@ -686,6 +690,7 @@
                 return;
             }
 
+            // Tampilkan hasil pencarian
             foundResults.forEach((res, index) => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-800/40 transition-colors";
@@ -710,6 +715,7 @@
             return;
         }
 
+        // Tampilkan normal seperti biasa jika tidak sedang mencari
         if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-calendar text-sky-400"></i> Jadwal Harian: ${currentDay}`;
         let slots = (dbRecord.schedule && dbRecord.schedule[currentDay]) ? dbRecord.schedule[currentDay] : emptyDayTemplate;
 
@@ -806,31 +812,33 @@
     }
 
     function updateAdBanner() {
-        const imgEl = document.getElementById('ad-banner-img');
-        if (!imgEl) return;
-        
-        imgEl.onerror = function() {
-            this.src = "https://placehold.co/600x400/0f172a/94a3b8?text=GOR+SATRIO+ARENA";
-        };
+    const imgEl = document.getElementById('ad-banner-img');
+    if (!imgEl) return;
+    
+    // Penanganan error jika gambar poster gagal dimuat
+    imgEl.onerror = function() {
+        this.src = "https://placehold.co/600x400/0f172a/94a3b8?text=GOR+SATRIO+ARENA";
+    };
 
-        if (adBanners.length > 0) {
-            imgEl.src = adBanners[currentAdIndex % adBanners.length];
-        }
+    if (dbRecord.ads && dbRecord.ads.length > 0) {
+        imgEl.src = dbRecord.ads[currentAdIndex % dbRecord.ads.length];
     }
+}
 
     function rotateAdBanner() {
-        if (adBanners.length <= 1) return;
+        if (!dbRecord.ads || dbRecord.ads.length <= 1) return;
         const imgEl = document.getElementById('ad-banner-img');
         if (!imgEl) return;
 
+        // Tambahkan juga penanganan error gambar rusak untuk rotasi
         imgEl.onerror = function() {
             this.src = "https://placehold.co/600x400/0f172a/94a3b8?text=GOR+SATRIO+ARENA";
         };
 
         imgEl.classList.add('fade-out');
         setTimeout(() => {
-            currentAdIndex = (currentAdIndex + 1) % adBanners.length;
-            imgEl.src = adBanners[currentAdIndex];
+            currentAdIndex = (currentAdIndex + 1) % dbRecord.ads.length;
+            imgEl.src = dbRecord.ads[currentAdIndex];
             imgEl.classList.remove('fade-out');
             imgEl.classList.add('fade-in');
             setTimeout(() => imgEl.classList.remove('fade-in'), 500);
@@ -845,9 +853,7 @@
 
         if (isAutoRotateActive) {
             clearInterval(autoRotateInterval);
-            clearInterval(bannerRotateInterval);
             autoRotateInterval = null;
-            bannerRotateInterval = null;
             isAutoRotateActive = false;
 
             if (iconEl) iconEl.className = "fa-solid fa-play text-emerald-400";
@@ -858,13 +864,11 @@
             if (isAdminMode) exitAdminMode();
             isAutoRotateActive = true;
             if (iconEl) iconEl.className = "fa-solid fa-pause text-amber-400";
-            if (textEl) textEl.innerText = "Slideshow: Aktif";
+            if (textEl) textEl.innerText = "Slideshow: Aktif (10s)";
             if (btnEl) btnEl.className = "px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center gap-1.5 shadow";
             if (badgeEl) badgeEl.classList.remove('hidden');
 
             if (autoRotateInterval) clearInterval(autoRotateInterval);
-            if (bannerRotateInterval) clearInterval(bannerRotateInterval);
-
             autoRotateInterval = setInterval(() => {
                 let currentIndex = dayOrder.indexOf(currentDay);
                 let nextIndex = (currentIndex + 1) % dayOrder.length;
@@ -872,10 +876,6 @@
                 renderDayTabs();
                 renderDailyTable();
             }, 10000);
-            
-            bannerRotateInterval = setInterval(() => {
-                rotateAdBanner();
-            }, 7000);
         }
     }
 
@@ -900,8 +900,9 @@
         btnVerify.disabled = true;
         errorEl.classList.add('hidden');
 
+        // Bungkus action pin bersama token rahasia
         let securePayload = {
-            token: APP_SECRET_TOKEN,
+            token: APP_SECRET_TOKEN, // Menggunakan token yang sama
             payload: {
                 action: "verifyPin",
                 pin: pin
@@ -912,7 +913,7 @@
             let response = await fetch(SCRIPT_URL, {
                 method: 'POST',
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify(securePayload)
+                body: JSON.stringify(securePayload) // Kirim payload yang sudah diamankan token
             });
             
             if (response.ok) {
@@ -1462,10 +1463,18 @@
     }
 
     function openAdminSettings() {
+        document.getElementById('admin-ads-input').value = dbRecord.ads ? dbRecord.ads.join(', ') : '';
         document.getElementById('admin-settings-modal').classList.remove('hidden');
     }
 
     function closeAdminSettingsModal() { document.getElementById('admin-settings-modal').classList.add('hidden'); }
+
+    async function saveAdminSettings() {
+        const rawText = document.getElementById('admin-ads-input').value;
+        dbRecord.ads = rawText.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        currentAdIndex = 0; updateAdBanner(); closeAdminSettingsModal(); await saveToCloud();
+        alert("Poster berhasil diperbarui!");
+    }
 
     async function resetRegulerOnly() {
         if (confirm("PERHATIAN:\nFitur ini akan menghapus SEMUA jadwal REGULER dari Senin sampai Minggu.\nJadwal Member akan tetap aman.\nLanjutkan?")) {
@@ -1485,7 +1494,7 @@
     }
 
     async function resetToDefault() {
-        if (confirm("Reset seluruh jadwal ke default (Kosong Total)?")) {
+        if (confirm("Reset seluruh jadwal ke default?")) {
             dbRecord.schedule = JSON.parse(JSON.stringify(defaultSchedule));
             renderDailyTable(); await saveToCloud(); alert("Jadwal direset!");
         }
@@ -1498,7 +1507,7 @@
                 let rawData = await response.json();
                 let record = safeParseJSON(rawData.record);
                 if (record && record.schedule) {
-                    dbRecord = record; // Timpa dari cloud (TIDAK ADA LAGI POSTER DI SINI)
+                    dbRecord = record;
                     if (!dbRecord.members) dbRecord.members = [];
                 }
             }
@@ -1529,31 +1538,40 @@
         }
     }
 
+    // Definisikan token rahasia yang sama persis dengan SECRET_KEY di Google Apps Script
     const APP_SECRET_TOKEN = "SatrioArena2026Rahasia!";
+
+    // Variabel penampung timer debounce
     let saveTimeout = null;
 
     async function saveToCloud() {
+        // 1. Simpan instan ke localStorage browser agar aman secara lokal
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(dbRecord));
+        
+        // 2. Tampilkan indikator status sedang menyimpan
         updateCloudIndicator('saving');
 
+        // 3. Batalkan timer sebelumnya jika ada (Debounce mechanism)
         if (saveTimeout) clearTimeout(saveTimeout);
 
+        // 4. Bungkus data database dan token ke dalam satu objek securePayload
         let securePayload = {
             token: APP_SECRET_TOKEN,
             payload: dbRecord
         };
 
+        // 5. Tunda pengiriman ke cloud selama 1.5 detik untuk menghindari spam request
         saveTimeout = setTimeout(async () => {
             try {
                 let response = await fetch(SCRIPT_URL, { 
                     method: 'POST', 
                     headers: { "Content-Type": "text/plain;charset=utf-8" }, 
-                    body: JSON.stringify(securePayload) 
+                    body: JSON.stringify(securePayload) // Kirim data yang sudah dibungkus token
                 });
                 
                 if (response.ok) {
                     let resData = await response.json();
-                    if (resData.success !== false) { 
+                    if (resData.success !== false) { // Memastikan status sukses dari server
                         updateCloudIndicator('success');
                     } else {
                         console.warn("Ditolak server:", resData.message);
@@ -1566,10 +1584,12 @@
                 console.warn("Gagal menyimpan ke Google Sheets, menggunakan mode offline.", err);
                 updateCloudIndicator('offline');
             }
-        }, 1500); 
+        }, 1500); // Penundaan 1.5 detik
     }
 
+    // --- URUTAN INISIALISASI SAAT HALAMAN DIBUKA (TAMBAHAN BARU) ---
     window.addEventListener('DOMContentLoaded', async () => {
+        // 1. Cek dulu apakah ada data di localStorage perangkat ini
         let localData = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (localData) {
             let parsed = safeParseJSON(localData);
@@ -1579,10 +1599,12 @@
             }
         }
 
+        // 2. Render tampilan awal berdasarkan data lokal/default agar layar tidak kosong
         renderDayTabs();
         renderDailyTable();
         updateAdBanner();
 
+        // 3. Tarik data terbaru dari Cloud (Google Sheets) untuk memastikan data 100% tersinkron
         await fetchScheduleFromCloud();
     });
 

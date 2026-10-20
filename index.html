@@ -536,11 +536,31 @@
         </div>
     </div>
 
-    <script>
+
     <!-- Firebase SDK Compat Mode (Gratis, Ringan, Praktis) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
+<script>
+    // 1. KONFIGURASI FIREBASE REALTIME DATABASE
+    const firebaseConfig = {
+        apiKey: "AIzaSyCjcE2jWAD5bMfn2sdkpKuEL3yix8L7Nr8",
+        authDomain: "satrio-arena.firebaseapp.com",
+        databaseURL: "https://satrio-arena-default-rtdb.firebaseio.com",
+        projectId: "satrio-arena",
+        storageBucket: "satrio-arena.firebasestorage.app",
+        messagingSenderId: "542194491726",
+        appId: "1:542194491726:web:bf2088b7efc4c83e847e1f"
+    };
+
+    // Inisialisasi Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
+
+    // PIN ADMIN (Ubah angka ini sesuai PIN yang kamu inginkan)
+    const ADMIN_PIN = "1234";
 
     const emptyDayTemplate = [
         { time: "06:00 - 07:00", l1: "Not Available", l2: "Not Available", l3: "Not Available" },

@@ -896,7 +896,7 @@ const db = firebase.database();
     
     if (!pin) {
         errorEl.classList.remove('hidden');
-        errorEl.innerText = "Masukkan PIN!";
+        errorEl.innerText = "Masukkan PINKOORDINASI !";
         return;
     }
 
@@ -935,16 +935,11 @@ const db = firebase.database();
         document.getElementById('mode-badge').className = "text-[10px] uppercase px-2.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full font-semibold";
         renderDailyTable();
 
-    } catch (error) {
+        } catch (error) {
         console.warn(error);
         errorEl.classList.remove('hidden');
-        // Menampilkan pesan error asli dari server Firebase ke layar
-        errorEl.innerText = "Error: " + error.message;
-    } finally {
-        btnVerify.innerText = originalText;
-        btnVerify.disabled = false;
+        errorEl.innerText = "PIN Salah!";
     }
-}
 
 
         async function exitAdminMode() {

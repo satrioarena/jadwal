@@ -544,6 +544,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 
     <script>
+        function closePasscodeModal() {
+    document.getElementById('passcode-modal').classList.add('hidden');
+}
+
         // 1. KONFIGURASI FIREBASE REALTIME DATABASE
 const firebaseConfig = {
     apiKey: "AIzaSyCjCE2jWAD5bMfn2sdkpKuEL3yix8L7Nr8",

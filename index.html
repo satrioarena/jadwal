@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+mood <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -1506,7 +1506,7 @@ const db = firebase.database();
             }
         }
 
-        // SIMPAN KE FIREBASE REALTIME DATABASE
+        
         async function saveToCloud() {
             updateCloudIndicator('saving');
 
@@ -1519,7 +1519,7 @@ const db = firebase.database();
             }
         }
 
-        // INISIALISASI DATA AWAL
+        
         async function initFirebaseData() {
             try {
                 const snapshot = await db.ref('dbRecord').once('value');
@@ -1531,33 +1531,33 @@ const db = firebase.database();
             }
         }
 
-        // INISIALISASI DOM HARIAN
-        updateClock(); 
-        renderDayTabs(); 
-        renderDailyTable(); 
-        updateAdBanner(); 
+       updateClock();
+            renderDayTabs();
+            renderDaylyTable();
+            updateAdBanner();
 
-        initFirebaseData();
+        initfirebaseData();
 
-        // MENDENGARKAN PERUBAHAN DATA REALTIME FIREBASE
-        db.ref('dbRecord').on('value', (snapshot) => {
-            const record = snapshot.val();
-            if (record && record.schedule) {
-                dbRecord = record;
-                if (!dbRecord.members) dbRecord.members = [];
+        db.ref('dbRecord').on('value', (snapshoot) => {
+            cons record = record;
+            if (!dbrecord.members) dbrecord.members = [];
 
-                if (!isAdminMode && !isSearching) {
-                    renderDayTabs(); 
-                    renderDailyTable(); 
-                    updateAdBanner();
-                }
-                updateCloudIndicator('success');
+            if(!isadminmode && ! issearching) {
+                renderDayTabs();
+                renderDailyTable();
+                updateAdBanner();
             }
-        });
+            updatecloudindicator('success');
+        }
+       });
 
-        // ROTASI BANNER SPONSOR (7 DETIK)
-        setInterval(() => { rotateAdBanner(); }, 7000);
-
-    </script>
+     setinterval(() => {rotareAdBanner(); }, 7000);
+            </script>
 </body>
 </html>
+
+
+
+
+
+                              

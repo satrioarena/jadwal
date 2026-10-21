@@ -886,60 +886,62 @@
         }
 
         async function verifyAdminPin() {
-            const pin = document.getElementById('admin-pin-input').value;
-            const errorEl = document.getElementById('pin-error');
-            const btnVerify = document.getElementById('btn-login-admin');
-            
-            if (!pin) {
-                errorEl.classList.remove('hidden');
-                errorEl.innerText = "Masukkan PIN!";
-                return;
-            }
+    const pin = document.getElementById('admin-pin-input').value;
+    const errorEl = document.getElementById('pin-error');
+    const btnVerify = document.getElementById('btn-login-admin');
+    
+    if (!pin) {
+        errorEl.classList.remove('hidden');
+        errorEl.innerText = "Masukkan PIN!";
+        return;
+    }
 
-            let originalText = btnVerify.innerText;
-            btnVerify.innerText = "Memeriksa...";
-            btnVerify.disabled = true;
-            errorEl.classList.add('hidden');
+    let originalText = btnVerify.innerText;
+    btnVerify.innerText = "Memeriksa...";
+    btnVerify.disabled = true;
+    errorEl.classList.add('hidden');
 
-            const emailAuth = `pin${pin}@satrioarena.com`;
-            const passAuth = `satrio${pin}`;
+    const emailAuth = `pin${pin}@satrioarena.com`;
+    const passAuth = `satrio${pin}`;
 
-            try {
-                await firebase.auth().signInWithEmailAndPassword(emailAuth, passAuth);
-                
-                closePasscodeModal();
-                isAdminMode = true;
-                
-                document.getElementById('admin-controls').innerHTML = `
-                    <button onclick="openReportModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500/30 flex items-center gap-1.5 shadow">
-                        <i class="fa-solid fa-chart-pie"></i> Laporan
-                    </button>
-                    <button onclick="openBulkModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-purple-500/20 border border-purple-500/40 text-purple-300 hover:bg-purple-500/30 flex items-center gap-1.5 shadow">
-                        <i class="fa-solid fa-layer-group"></i> Booking Massal
-                    </button>
-                    <button onclick="openMemberModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 hover:bg-indigo-500/30 flex items-center gap-1.5 shadow">
-                        <i class="fa-solid fa-users"></i> Kelola Member
-                    </button>
-                    <button onclick="openAdminSettings()" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-sky-500/20 border border-sky-500/40 text-sky-300 hover:bg-sky-500/30 flex items-center gap-1.5 shadow">
-                        <i class="fa-solid fa-sliders"></i> Pengaturan
-                    </button>
-                    <button onclick="toggleAdminMode()" id="btn-mode-toggle" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center gap-1.5 shadow">
-                        <i class="fa-solid fa-unlock"></i> Keluar Admin
-                    </button>
-                `;
-                document.getElementById('mode-badge').innerText = "Admin Mode";
-                document.getElementById('mode-badge').className = "text-[10px] uppercase px-2.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full font-semibold";
-                renderDailyTable();
+    try {
+        await firebase.auth().signInWithEmailAndPassword(emailAuth, passAuth);
+        
+        closePasscodeModal();
+        isAdminMode = true;
+        
+        document.getElementById('admin-controls').innerHTML = `
+            <button onclick="openReportModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500/30 flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-chart-pie"></i> Laporan
+            </button>
+            <button onclick="openBulkModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-purple-500/20 border border-purple-500/40 text-purple-300 hover:bg-purple-500/30 flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-layer-group"></i> Booking Massal
+            </button>
+            <button onclick="openMemberModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 hover:bg-indigo-500/30 flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-users"></i> Kelola Member
+            </button>
+            <button onclick="openAdminSettings()" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-sky-500/20 border border-sky-500/40 text-sky-300 hover:bg-sky-500/30 flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-sliders"></i> Pengaturan
+            </button>
+            <button onclick="toggleAdminMode()" id="btn-mode-toggle" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-unlock"></i> Keluar Admin
+            </button>
+        `;
+        document.getElementById('mode-badge').innerText = "Admin Mode";
+        document.getElementById('mode-badge').className = "text-[10px] uppercase px-2.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full font-semibold";
+        renderDailyTable();
 
-            } catch (error) {
-                console.warn(error);
-                errorEl.classList.remove('hidden');
-                errorEl.innerText = "PIN Salah!";
-            } finally {
-                btnVerify.innerText = originalText;
-                btnVerify.disabled = false;
-            }
-        }
+    } catch (error) {
+        console.warn(error);
+        errorEl.classList.remove('hidden');
+        // Menampilkan pesan error asli dari server Firebase ke layar
+        errorEl.innerText = "Error: " + error.message;
+    } finally {
+        btnVerify.innerText = originalText;
+        btnVerify.disabled = false;
+    }
+}
+
 
         async function exitAdminMode() {
             try {

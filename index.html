@@ -1531,28 +1531,34 @@ const db = firebase.database();
             }
         }
 
-       updateClock();
-            renderDayTabs();
-            renderDaylyTable();
-            updateAdBanner();
+       // INISIALISASI DOM HARIAN
+        updateClock(); 
+        renderDayTabs(); 
+        renderDailyTable(); 
+        updateAdBanner(); 
 
-        initfirebaseData();
+        initFirebaseData();
 
-        db.ref('dbRecord').on('value', (snapshoot) => {
-            cons record = record;
-            if (!dbrecord.members) dbrecord.members = [];
+        // MENDENGARKAN PERUBAHAN DATA REALTIME FIREBASE
+        db.ref('dbRecord').on('value', (snapshot) => {
+            const record = snapshot.val();
+            if (record && record.schedule) {
+                dbRecord = record;
+                if (!dbRecord.members) dbRecord.members = [];
 
-            if(!isadminmode && ! issearching) {
-                renderDayTabs();
-                renderDailyTable();
-                updateAdBanner();
+                if (!isAdminMode && !isSearching) {
+                    renderDayTabs(); 
+                    renderDailyTable(); 
+                    updateAdBanner();
+                }
+                updateCloudIndicator('success');
             }
-            updatecloudindicator('success');
-        }
-       });
+        });
 
-     setinterval(() => {rotareAdBanner(); }, 7000);
-            </script>
+        // ROTASI BANNER SPONSOR (7 DETIK)
+        setInterval(() => { rotateAdBanner(); }, 7000);
+
+    </script>
 </body>
 </html>
 

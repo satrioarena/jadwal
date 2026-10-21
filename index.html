@@ -269,7 +269,7 @@
             <div id="pin-error" class="text-[11px] text-rose-400 hidden">PIN Salah!</div>
             <div class="flex gap-2 pt-1">
                 <button onclick="closePasscodeModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-xs font-semibold">Batal</button>
-                <button onclick="verifyAdminPin()" class="flex-1 bg-sky-500 hover:bg-sky-400 text-slate-950 py-2 rounded-lg text-xs font-bold shadow">Masuk</button>
+                <button id="btn-login-admin" onclick="verifyAdminPin()" class="flex-1 bg-sky-500 hover:bg-sky-400 text-slate-950 py-2 rounded-lg text-xs font-bold shadow">Masuk</button>
             </div>
         </div>
     </div>
@@ -538,11 +538,10 @@
         </div>
     </div>
 
-        <!-- FIREBASE SDK COMPAT MODE -->
+    <!-- FIREBASE SDK COMPAT MODE -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-
 
     <script>
         // 1. KONFIGURASI FIREBASE REALTIME DATABASE
@@ -561,9 +560,6 @@
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.database();
-
-    
-        
 
         // TEMPLATE DUMMY UNTUK HARI KOSONG
         const emptyDayTemplate = [
@@ -889,9 +885,10 @@
             }
         }
 
-                async function verifyAdminPin() {
+        async function verifyAdminPin() {
             const pin = document.getElementById('admin-pin-input').value;
             const errorEl = document.getElementById('pin-error');
+            const btnVerify = document.getElementById('btn-login-admin');
             
             if (!pin) {
                 errorEl.classList.remove('hidden');
@@ -899,18 +896,15 @@
                 return;
             }
 
-            const btnVerify = event.target;
             let originalText = btnVerify.innerText;
             btnVerify.innerText = "Memeriksa...";
             btnVerify.disabled = true;
             errorEl.classList.add('hidden');
 
-            // SISTEM BARU: Ubah otomatis angka PIN jadi format Email & Password
             const emailAuth = `pin${pin}@satrioarena.com`;
             const passAuth = `satrio${pin}`;
 
             try {
-                // Proses login instan ke Firebase
                 await firebase.auth().signInWithEmailAndPassword(emailAuth, passAuth);
                 
                 closePasscodeModal();
@@ -949,7 +943,6 @@
 
         async function exitAdminMode() {
             try {
-                // Logout dari server Firebase
                 await firebase.auth().signOut();
             } catch (err) {
                 console.error("Gagal logout", err);

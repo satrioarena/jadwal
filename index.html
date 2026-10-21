@@ -896,7 +896,7 @@ const db = firebase.database();
     
     if (!pin) {
         errorEl.classList.remove('hidden');
-        errorEl.innerText = "Masukkan PINKOORDINASI !";
+        errorEl.innerText = "Masukkan PIN Admin!";
         return;
     }
 
@@ -939,7 +939,8 @@ const db = firebase.database();
         console.warn(error);
         errorEl.classList.remove('hidden');
         errorEl.innerText = "PIN Salah!";
-    }
+        }
+        }
 
 
         async function exitAdminMode() {
